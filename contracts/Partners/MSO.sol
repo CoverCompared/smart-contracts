@@ -81,6 +81,13 @@ pd.details['Product']['currency'] = _currency;
 pd.IntValues['paid'] = _amountPaid;
 pd.IntValues['timeStamp'] = block.timestamp;
 
+//Storing array indexes on partner and user side
+//Partner side
+partners[_partner].indexes.push(everyBought.length);
+
+//User side
+users[_msgSender()].indexes.push(everyBought.length);
+
 //Asserting
 assert(users[_msgSender()].IntValues['nonce'] == nonce);
 
