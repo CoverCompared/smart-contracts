@@ -12,103 +12,81 @@ import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 contract Storage is AccessControlEnumerable {
 
 /**
-* mapping(string => uint) uintStorage;
-* Instead of doing uint256 public number, we do the above mentined mapping 
-* a mapping for "number"=> uint256. 
-* Benefit : tomorrow if we need to add more variables like cat, dog, crocodile
-* Then we can just define those variables in the mapping and store it.
-* Like cat=> uint256, dog=> uint256, crocodile=> uint256
-* Like uintStorage["dog"] = 10;
-*/
-
-
-/**
 * Listing of all partners
 */
 
-mapping (string => partnerDetails) partners;
+mapping (bytes32 => partnerDetails) partners;
 
 struct partnerDetails {
     mapping(string => uint) IntValues;
     mapping (string => mapping(string => string)) details;
     mapping (string => bool) boolValues;
-
+    uint256 [] indexes;
     mapping(string => address) addresses;
+    mapping(address => bool) currencies;
     mapping(string => bytes) byteValue;
-    mapping (string => string) moreDetails;
-
 }
-/**
-* @dev the triple mapping above will store atleast 3 type of data
-* Status, Type and moreDetails.
-* The IntValues will store totalNo. of cover sold, partner joining epoch,
-* THe boolValues will store => isActive, exists.
-* Last 3 mappings are provisional to incapsulate future needs.
-*/
 
-string [] public partnerList;
-
-//Storing all the products bought on a per user basis mapping
-mapping (address => mapping (uint => productDetails)) internal userBought;
-
-//Storing amount of products bought per user
-mapping (address => uint) totalBought;
-
-//Stpring the addresses of each user that has bought cover from the platform
-address [] public buyers;
-
-//Storing all the covers bought on a per partner basis
-mapping (string => mapping (uint => productDetails)) internal soldPerPartner;
-
-/**
-* Keys : Amount, Poduct, Currency, Period, Provider => 5,Curve pool cover, Eth, 4, Nexus Mutual
-* mapping (string => string)public Product;
-* Keys : Amount, product, currency, period => Wei, "Address of the pool cover", Wei, weeks, address of Nexus Mutual
-* mapping (string => string) public Units;
-*/
+bytes32 [] public partnerList;
 
 struct productDetails {
-//This is for demo, this will fall under the triple string mapping.
 mapping (string => string) Product;
 mapping (string => string) Units;
 
 mapping(string => uint) IntValues;
 mapping(string => address) addresses;
 mapping(string => bytes) byteValue;
-mapping (string => string) moreDetails;
 mapping (string => bool) boolValues;
 
 mapping (string => mapping(string => string)) details;
 }
 
-/**
-* To discuss : do we need an array 
-* for defining all the keys that we are using
-*/
+//Array of all bought products
+productDetails [] everyBought;
 
-// Potentially useless
-mapping (string => mapping (string => string)) Units;
-//mapping (string => string) moreDetails;
 
-/* This mapping is to map all the active 
-* proxy addresses to true it's bool value  
-*/
-mapping (address => addressStatus) proxyAddresses;
+//User details
+mapping (address=> userDetails) users;
 
-struct addressStatus {
-    mapping(string => string) details;
-    mapping(string => bool) boolValues;
+struct userDetails {
+    mapping(string => uint) IntValues;
+    mapping (string => mapping(string => string)) details;
+    mapping (string => bool) boolValues;
+
+    uint256 [] indexes;
+
+    mapping(string => address) addresses;
+    mapping(string => bytes) byteValue;
 }
 
-/* @dev This address is a special address
+/** @dev This address is a special address
 * In case of chaning data in this storage contract
 * There is a provision to set a pointer to an contract 
 * Where we can define the functions we want to edit
-* the data according to our needs */
-address public updateStorage;
+* the data according to our needs 
+*
+* All address of priceFeeds, updateStarage smart contract
+* will be stored here
+*
+*/
+mapping (bytes32 => operator) operators;
+
+struct operator{
+    address operation;
+    bool exists;
+    bool isActive;
+}
+
+bytes32 [] operatorList;
 
 address public owner;
 bool public _initialized;
+
+/** @dev
+* Spported currency list
+*/
+
+mapping (address => bool) currencies;
 
 /**
 * All the listing of essential participants in the 
