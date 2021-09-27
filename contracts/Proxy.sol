@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 * by simply updating the new function contract address 
 */
 
-contract Proxy is Storage, ReentrancyGuard, Pausable{
+contract CoverCompared is Storage, ReentrancyGuard, Pausable{
 
 modifier onlyOwner()  {
 require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "You are not the owner");
@@ -76,17 +76,7 @@ event contractPaused(address _pauser, string _message);
 
 event contractResumed(address _resumer, string _message);
 
-function _pause() internal override whenNotPaused {
-    _paused = true;
-    emit Paused(_msgSender());
-}
-
-function _unpause() internal override whenPaused{
-    _paused = false;
-    emit Unpaused(_msgSender());
-}
-
-function stop(string memory _message) public ifEmergencyOfficer {
+function pause(string memory _message) public ifEmergencyOfficer {
     _pause();
 
     emit contractPaused(_msgSender(),_message );
@@ -97,40 +87,59 @@ function resume(string memory _message) public ifEmergencyOfficer {
     emit contractResumed(_msgSender(),_message );
 }
 
-function addProxy(address newAddress, string memory _name) public ifManager{
-    proxyAddresses[newAddress].details['name'] = _name;
-    proxyAddresses[newAddress].boolValues['exists']= true;
+function addProxy(address proxyAddress, bytes32 _name) public ifManager{
 
-    emit newPartnerAdded(newAddress, _msgSender());
+require(partners[_name].boolValues['exists'] != true, 'Partner already exists');
+require(proxyAddress != address(0));
+
+partners[_name].boolValues['exists'] = true;
+partnerList.push(_name);
+partners[_name].addresses['proxy'] = proxyAddress;
+
+    emit newPartnerAdded(proxyAddress, _msgSender());
 }
 
-function removeProxy(address oldAddress) public ifManager{
-    require(proxyAddresses[oldAddress].boolValues['exists']== true, 'Is not a proxy');
-    require(proxyAddresses[oldAddress].boolValues['active']!= false, 'Is already unactive');
+function removeProxy(bytes32 _name) public ifManager{
+    require(partners[_name].boolValues['exists']== true, 'Is not a proxy');
+    require(partners[_name].boolValues['isActive']!= false, 'Is already unactive');
 
-    proxyAddresses[oldAddress].boolValues['active']= false;
+    partners[_name].boolValues['isActive']= false;
 }
 
-function activateProxy(address proxyAddress) public ifManager {
-    proxyAddresses[proxyAddress].boolValues['active'] = true;
+function activateProxy(bytes32 _name) public ifManager {
+    require(partners[_name].boolValues['exists'] == true, 'Partner does not exist');
 
-    emit partnerMadeActive(proxyAddress, _msgSender());
+    partners[_name].boolValues['active'] = true;
+
+    emit partnerMadeActive(partners[_name].addresses['proxy'], _msgSender());
 }
 
-function updateProxyInfo(string[] memory _keyValues, string[] memory info, address proxyAddress) public ifManager {
-    require(proxyAddresses[proxyAddress].boolValues['exists']== true, 'Is not a proxy');
+function updateProxyInfo(bytes32 _name, string[] memory _keyValues, string memory _heading, string[] memory info) public ifManager {
+    require(partners[_name].boolValues['exists']== true, 'Is not a proxy');
+    require(_keyValues.length == info.length);
 
     for(uint i=0; i<_keyValues.length; i++) {
-    proxyAddresses[proxyAddress].details[_keyValues[i]] = info[i];
+    partners[_name].details[_heading][_keyValues[i]] = info[i];
 }
 }
 
-function updateBoolInfo(string[] memory _keyValues, bool[] memory info, address proxyAddress) public ifManager {
-    require(proxyAddresses[proxyAddress].boolValues['exists']== true, 'Is not a proxy');
+function updateBoolInfo(bytes32 _name, string[] memory _keyValues, bool[] memory info) public ifManager {
+    require(partners[_name].boolValues['exists']== true, 'Is not a proxy');
+    require(_keyValues.length == info.length);
+
+for(uint i=0; i<_keyValues.length; i++) {
+require(keccak256(abi.encodePacked(_keyValues[i])) != keccak256(abi.encodePacked('exists')));
+require(keccak256(abi.encodePacked(_keyValues[i])) != keccak256(abi.encodePacked('exists')));
+
+}
 
      for(uint i=0; i<_keyValues.length; i++) {
-    proxyAddresses[proxyAddress].boolValues[_keyValues[i]] = info[i];
+    partners[_name].boolValues[_keyValues[i]] = info[i];
 }
+}
+
+function updateCurrencyStatus(address _currency, bool _status) public ifManager {
+    currencies[_currency] = _status;
 }
 
 /** 
@@ -148,18 +157,28 @@ bytes memory data = msg.data;
 
 //Setting the proxy contract address
 //My addition : 
-bytes20 _address;
+bytes32 _partner;
 
 assembly {
-        calldatacopy(0x0, 16, 36)
-        _address := mload(0x0)
+        calldatacopy(0x0, 4, 36)
+        _partner := mload(0x0)
 }
 
-address proxy = address(_address);
+address proxy;
+
+if (operators[_partner].exists == true && operators[_partner].exists == true ) {
+     proxy = operators[_partner].operation;
+
+} else if(partners[_partner].boolValues['isActive'] == true){
+
+    proxy = partners[_partner].addresses['proxy'];
+
+} else {
+    revert();
+}
 
 //For security setting the condition that address is a one which we recognize
 require(proxy != address(0));
-require(proxyAddresses[proxy].boolValues['active'] || proxy == updateStorage);
 
 //The fun begins
 assembly {
