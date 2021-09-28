@@ -142,6 +142,31 @@ function updateCurrencyStatus(address _currency, bool _status) public ifManager 
     currencies[_currency] = _status;
 }
 
+function readProduct(string memory _key, uint _int) public view returns (string memory){
+return everyBought[_int].Product[_key];
+}
+
+function readIntValues(string memory _key, uint _int) public view returns (string memory){
+return everyBought[_int].Units[_key];
+}
+
+function readAddresses(string memory _key, uint _int) public view returns (uint256){
+return everyBought[_int].IntValues[_key];
+}
+
+function readByteValues(string memory _key, uint _int) public view returns (bytes memory){
+return everyBought[_int].byteValue[_key];
+}
+
+function readBoolValues(string memory _key, uint _int) public view returns (bool){
+return everyBought[_int].boolValues[_key];
+}
+
+function readDetails(string memory _key1, string memory _key2, uint _int) public view returns (string memory){
+return everyBought[_int].details[_key1][_key2];
+}
+
+
 /** 
 * @dev User calls a function --> is directly directed to fallback
 * Admin calls a function --> is directed to the function
