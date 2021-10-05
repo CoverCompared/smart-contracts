@@ -45,8 +45,7 @@ function buyDeviceInsurance(bytes32 _partner,
 bytes memory sig,
 uint256 nonce,
 address _buyer,
-string memory _device,
-string memory _company,
+string memory plan,
 uint256 _amountPaid,
 string memory _currency,
 address _currencyContract,
@@ -75,8 +74,7 @@ require(signer == address(0), 'Not a valid signer');
 //pd => ProductDetails
 
 productDetails storage pd = everyBought[everyBought.length];
-pd.details['Product']['device'] = _device;
-pd.details['Product']['company'] = _company;
+pd.details['Product']['plan'] = plan;
 pd.details['Product']['currency'] = _currency;
 pd.IntValues['paid'] = _amountPaid;
 pd.IntValues['timeStamp'] = block.timestamp;
