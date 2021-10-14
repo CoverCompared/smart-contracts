@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import {IInsureAce} from "../interfaces/IInsureAce.sol";
-import "./BasePolka.sol";
+import "./BasePolkaOnChain.sol";
 
 contract BuyCoverExample is OwnableUpgradeable, BasePolka {
     using SafeMathUpgradeable for uint256;

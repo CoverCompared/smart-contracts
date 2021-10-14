@@ -3,7 +3,11 @@
 pragma solidity ^0.8.0;
 
 interface IExchangeAgent {
-    function getTokenUSDPrice(address _token, uint256 _desiredUSD) external view returns (uint256);
+    function getNeededTokenAmount(address _token0, address _token1,  uint256 _desiredAmount) external returns (uint256);
 
-    function swapCVRWithETH(uint256 amount) external;
+    function getTokenAmountForUSDC(address _token, uint _desiredAmount) external returns (uint256);
+
+    function getTokenAmountForETH(address _token, uint _desiredAmount) external returns (uint256);
+
+    function swapTokenWithETH(address _token, uint256 _amount) external;
 }

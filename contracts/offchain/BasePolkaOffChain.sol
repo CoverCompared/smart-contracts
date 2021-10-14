@@ -8,11 +8,12 @@ contract BasePolkaOffChain is Ownable {
     using Counters for Counters.Counter;
 
     event BuyProduct(uint256 indexed _productId, address _buyer);
-    
+
     Counters.Counter public productIds;
     mapping(uint256 => address) private _ownerOf; // productId => owner
     mapping(address => uint64) private _balanceOf; // owner => balance We can think one user can buy max 2**64 products
     mapping(address => uint64[]) private _productsOf; // owner => productIds[]
+    mapping(address => bool) public availableCurrencies;
 
     address public immutable WETH;
     // TODO should it be public?
@@ -29,11 +30,18 @@ contract BasePolkaOffChain is Ownable {
         devWallet = _devWallet;
     }
 
-    function _setProductOwner(uint _prodId, address _owner) internal {
+    modifier onlyAvailableToken(address _token) {
+        require(availableCurrencies[_token], "Not allowed token");
+        _;
+    }
+
+    receive() external payable {}
+
+    function _setProductOwner(uint256 _prodId, address _owner) internal {
         _ownerOf[_prodId] = _owner;
     }
 
-    function ownerOf(uint _prodId) public view returns (address) {
+    function ownerOf(uint256 _prodId) public view returns (address) {
         return _ownerOf[_prodId];
     }
 
@@ -45,7 +53,7 @@ contract BasePolkaOffChain is Ownable {
         return _balanceOf[_account];
     }
 
-    function _buyProduct(address _buyer, uint _pid) internal {
+    function _buyProduct(address _buyer, uint256 _pid) internal {
         require(_pid < productIds.current(), "Invalid product ID");
         _productsOf[_buyer].push(uint64(_pid));
         emit BuyProduct(_pid, _buyer);
@@ -55,14 +63,55 @@ contract BasePolkaOffChain is Ownable {
         return _productsOf[_owner][_idx];
     }
 
+    function addCurrency(address _currency) external onlyOwner {
+        require(!availableCurrencies[_currency], "Already available");
+        availableCurrencies[_currency] = true;
+    }
+
+    function removeCurrency(address _currency) external onlyOwner {
+        require(availableCurrencies[_currency], "Not available yet");
+        availableCurrencies[_currency] = false;
+    }
+
     function permit(
         address _sender,
         bytes32 _digest,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        bytes memory sig
     ) internal pure virtual {
+        (bytes32 r, bytes32 s, uint8 v) = splitSignature(sig);
         address recoveredAddress = ecrecover(_digest, v, r, s);
         require(recoveredAddress != address(0) && recoveredAddress == _sender, "PolkaCompare: INVALID_SIGNATURE");
+    }
+
+    function splitSignature(bytes memory sig)
+        public
+        pure
+        returns (
+            bytes32 r,
+            bytes32 s,
+            uint8 v
+        )
+    {
+        require(sig.length == 65, "invalid signature length");
+
+        assembly {
+            /*
+            First 32 bytes stores the length of the signature
+
+            add(sig, 32) = pointer of sig + 32
+            effectively, skips first 32 bytes of signature
+
+            mload(p) loads next 32 bytes starting at the memory address p into memory
+            */
+
+            // first 32 bytes, after the length prefix
+            r := mload(add(sig, 32))
+            // second 32 bytes
+            s := mload(add(sig, 64))
+            // final byte (first byte of the next 32 bytes)
+            v := byte(0, mload(add(sig, 96)))
+        }
+
+        // implicitly return (r, s, v)
     }
 }
