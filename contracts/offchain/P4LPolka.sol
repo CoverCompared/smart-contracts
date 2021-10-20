@@ -68,12 +68,12 @@ contract P4L is Ownable, ReentrancyGuard, BasePolkaOffChain {
         address _token,
         address _sender,
         bytes memory sig
-    ) external payable nonReentrant onlyAvailableToken(_token) {
+    ) external nonReentrant onlyAvailableToken(_token) {
         bytes32 digest = getSignedMsgHash(_device, _brand, _value, _purchMonth, _durPlan);
         permit(_sender, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, _value);
-        TransferHelper.safeTransferFrom(_token, _sender, address(this), tokenAmount);
+        TransferHelper.safeTransferFrom(_token, _sender, devWallet, tokenAmount);
         uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), uint64(_purchMonth), _device, _brand, _sender);
 
         emit BuyP4L(_pid, _sender, _token, tokenAmount, _value);

@@ -12,4 +12,8 @@ interface INexusMutual {
         uint256 maxPriceWithFee,
         bytes calldata data
     ) external payable returns (uint256);
+
+    function WETH() external view returns (address);
+
+    function feePercentage() external view returns (uint256);
 }

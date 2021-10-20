@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./libs/TransferHelper.sol";
 import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
@@ -11,7 +12,7 @@ import "./interfaces/IExchangeAgent.sol";
 /**
  * @dev This smart contract is for getting CVR_ETH, CVR_USDT price
  */
-contract ExchangeAgent is Ownable, IExchangeAgent {
+contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     event AddedGateway(address _sender, address _gateway);
     event RemovedGateway(address _sender, address _gateway);
     event SetCurrency(address _sender, address _currency, address _pair);
@@ -19,7 +20,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent {
 
     mapping(address => bool) public whiteList; // white listed polka gateways
     // available currencies in Polkacover, token => pair
-    // for now we allow ETH and CVR
+    // for now we allow CVR
     mapping(address => bool) public availableCurrencies;
 
     address public immutable USDC_ADDRESS;
@@ -44,9 +45,13 @@ contract ExchangeAgent is Ownable, IExchangeAgent {
     }
 
     /**
-     * @dev we set amount param here to reduce decimal round issue when deviding...
+     * @dev Get needed _token0 amount for _desiredAmount of _token1
      */
-    function _getNeededTokenAmount(address _token0, address _token1,  uint256 _desiredAmount) private view returns (uint256) {
+    function _getNeededTokenAmount(
+        address _token0,
+        address _token1,
+        uint256 _desiredAmount
+    ) private view returns (uint256) {
         address pair = IUniswapV2Factory(UNISWAP_FACTORY).getPair(_token0, _token1);
         require(pair != address(0), "There's no stable pair");
 
@@ -66,26 +71,53 @@ contract ExchangeAgent is Ownable, IExchangeAgent {
         return (numerator * (10**IERC20Metadata(_token0).decimals())) / denominator;
     }
 
-    function getNeededTokenAmount(address _token0, address _token1,  uint256 _desiredAmount) external view override returns (uint256) {
-        return _getNeededTokenAmount(_token0, _token1,  _desiredAmount);
+    /**
+     * @dev Get needed _token0 amount for _desiredAmount of _token1
+     */
+    function getNeededTokenAmount(
+        address _token0,
+        address _token1,
+        uint256 _desiredAmount
+    ) external view override returns (uint256) {
+        return _getNeededTokenAmount(_token0, _token1, _desiredAmount);
     }
 
-    function getTokenAmountForUSDC(address _token, uint _desiredAmount) external view override returns (uint256) {
+    function getTokenAmountForUSDC(address _token, uint256 _desiredAmount) external view override returns (uint256) {
         return _getNeededTokenAmount(_token, USDC_ADDRESS, _desiredAmount);
     }
 
-    function getTokenAmountForETH(address _token, uint _desiredAmount) external view override returns (uint256) {
+    function getTokenAmountForETH(address _token, uint256 _desiredAmount) external view override returns (uint256) {
         return _getNeededTokenAmount(_token, WETH, _desiredAmount);
     }
 
     /**
-     * @param _amount: this one is the value with decimals 
+     * @param _amount: this one is the value with decimals
      */
-    function swapTokenWithETH(address _token, uint256 _amount) external override onlyWhiteListed(msg.sender) {
+    function swapTokenWithETH(address _token, uint256 _amount) external override onlyWhiteListed(msg.sender) nonReentrant {
         // store CVR in this exchagne contract
         // send eth to buy gateway based on the uniswap price
         require(availableCurrencies[_token], "Token should be added in available list");
-        address pair = IUniswapV2Factory(UNISWAP_FACTORY).getPair(_token, WETH);
+        _swapTokenWithToken(_token, WETH, _amount);
+    }
+
+    function swapTokenWithToken(
+        address _token0,
+        address _token1,
+        uint256 _amount
+    ) external override onlyWhiteListed(msg.sender) nonReentrant {
+        require(availableCurrencies[_token0], "Token should be added in available list");
+        _swapTokenWithToken(_token0, _token1, _amount);
+    }
+
+    /**
+     * @dev exchange _amount of _token0 with _token1
+     */
+    function _swapTokenWithToken(
+        address _token0,
+        address _token1,
+        uint256 _amount
+    ) private {
+        address pair = IUniswapV2Factory(UNISWAP_FACTORY).getPair(_token0, _token1);
         require(pair != address(0), "There's no stable pair");
 
         address token0 = IUniswapV2Pair(pair).token0();
@@ -93,7 +125,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent {
 
         uint256 denominator;
         uint256 numerator;
-        if (_token == token0) {
+        if (_token0 == token0) {
             denominator = reserve0;
             numerator = reserve1 * _amount;
         } else {
@@ -101,9 +133,16 @@ contract ExchangeAgent is Ownable, IExchangeAgent {
             numerator = reserve0 * _amount;
         }
 
-        uint value = numerator / denominator;
+        uint256 value = numerator / denominator;
         require(value <= address(this).balance, "Insufficient ETH balance");
-        TransferHelper.safeTransferETH(msg.sender, numerator / denominator);
+
+        TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), _amount);
+
+        if (_token1 == WETH) {
+            TransferHelper.safeTransferETH(msg.sender, value);
+        } else {
+            TransferHelper.safeTransfer(_token1, msg.sender, value);
+        }
     }
 
     function addWhiteList(address _gateway) external onlyOwner {

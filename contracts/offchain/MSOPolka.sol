@@ -60,13 +60,13 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         TransferHelper.safeTransferETH(devWallet, tokenAmount);
 
         uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, msg.sender);
-        
 
         emit BuyMSO(_pid, msg.sender, WETH, tokenAmount, usdPrice, conciergePrice);
     }
 
     /**
      * @dev buyProductByToken function:
+     * TODO check restrict if only multisigwallet to access this function?
      */
     function buyProductByToken(
         string memory productName,
@@ -76,7 +76,7 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         uint256 conciergePrice,
         address _sender,
         bytes memory sig
-    ) external payable nonReentrant onlyAvailableToken(_token) {
+    ) external nonReentrant onlyAvailableToken(_token) {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(productName, priceInUSD, period, conciergePrice);
@@ -85,8 +85,8 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, usdPrice);
         TransferHelper.safeTransferFrom(_token, _sender, devWallet, tokenAmount);
 
-        uint _pid = buyProduct(productName, priceInUSD, period, conciergePrice, _sender);
-        
+        uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, _sender);
+
         emit BuyMSO(_pid, _sender, _token, tokenAmount, usdPrice, conciergePrice);
     }
 
@@ -96,7 +96,7 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         uint256 period,
         uint256 conciergePrice,
         address _sender
-    ) private returns(uint _pid) {
+    ) private returns (uint256 _pid) {
         _pid = productIds.current();
         products[_pid] = Product({
             productName: productName,
