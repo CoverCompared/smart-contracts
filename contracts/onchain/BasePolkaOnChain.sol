@@ -22,7 +22,11 @@ contract BasePolkaOnChain is Ownable {
     /**
      * @dev _WETH depends on what address partners uses for WETH on their smart contract
      */
-    constructor(address _WETH, address _CVR, address _exchangeAgent) {
+    constructor(
+        address _WETH,
+        address _CVR,
+        address _exchangeAgent
+    ) {
         WETH = _WETH;
         availableCurrencies[_CVR] = true;
         exchangeAgent = _exchangeAgent;
