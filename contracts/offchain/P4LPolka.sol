@@ -27,8 +27,9 @@ contract P4L is Ownable, ReentrancyGuard, BasePolkaOffChain {
     constructor(
         address _WETH,
         address _exchangeAgent,
-        address _devWallet
-    ) BasePolkaOffChain(_WETH, _exchangeAgent, _devWallet) {}
+        address _devWallet,
+        address _multiSigWallet
+    ) BasePolkaOffChain(_WETH, _exchangeAgent, _devWallet, _multiSigWallet) {}
 
     /**
      * @dev buyProductETH function:

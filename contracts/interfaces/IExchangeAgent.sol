@@ -11,6 +11,8 @@ interface IExchangeAgent {
 
     function getTokenAmountForUSDC(address _token, uint256 _desiredAmount) external returns (uint256);
 
+    function getETHAmountForUSDC(uint256 _desiredAmount) external view returns (uint256);
+
     function getTokenAmountForETH(address _token, uint256 _desiredAmount) external returns (uint256);
 
     function swapTokenWithETH(address _token, uint256 _amount) external;

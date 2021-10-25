@@ -82,6 +82,10 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         return _getNeededTokenAmount(_token0, _token1, _desiredAmount);
     }
 
+    function getETHAmountForUSDC(uint256 _desiredAmount) external view override returns (uint256) {
+        return _getNeededTokenAmount(WETH, USDC_ADDRESS, _desiredAmount);
+    }
+
     function getTokenAmountForUSDC(address _token, uint256 _desiredAmount) external view override returns (uint256) {
         return _getNeededTokenAmount(_token, USDC_ADDRESS, _desiredAmount);
     }

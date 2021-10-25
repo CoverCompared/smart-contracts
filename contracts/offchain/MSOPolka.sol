@@ -33,8 +33,9 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
     constructor(
         address _WETH,
         address _exchangeAgent,
-        address _devWallet
-    ) BasePolkaOffChain(_WETH, _exchangeAgent, _devWallet) {}
+        address _devWallet,
+        address _multiSigWallet
+    ) BasePolkaOffChain(_WETH, _exchangeAgent, _devWallet, _multiSigWallet) {}
 
     /**
      * @dev buyProductByETH function:
@@ -51,8 +52,7 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         bytes32 digest = getSignedMsgHash(productName, priceInUSD, period, conciergePrice);
         permit(msg.sender, digest, sig);
 
-        uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(WETH, usdPrice);
-
+        uint256 tokenAmount = IExchangeAgent(exchangeAgent).getETHAmountForUSDC(usdPrice);
         require(msg.value >= tokenAmount, "Insufficient amount");
         if (msg.value > tokenAmount) {
             TransferHelper.safeTransferETH(msg.sender, msg.value - tokenAmount);
@@ -61,12 +61,12 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
 
         uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, msg.sender);
 
-        emit BuyMSO(_pid, msg.sender, WETH, tokenAmount, usdPrice, conciergePrice);
+        emit BuyMSO(_pid, msg.sender, WETH, tokenAmount, priceInUSD, conciergePrice);
     }
 
     /**
      * @dev buyProductByToken function:
-     * TODO check restrict if only multisigwallet to access this function?
+     * this should be called through MultiSigWallet for gasless work
      */
     function buyProductByToken(
         string memory productName,
@@ -74,20 +74,18 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         uint256 period,
         address _token,
         uint256 conciergePrice,
-        address _sender,
         bytes memory sig
     ) external nonReentrant onlyAvailableToken(_token) {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(productName, priceInUSD, period, conciergePrice);
-        permit(_sender, digest, sig);
+        permit(msg.sender, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, usdPrice);
-        TransferHelper.safeTransferFrom(_token, _sender, devWallet, tokenAmount);
+        TransferHelper.safeTransferFrom(_token, msg.sender, devWallet, tokenAmount);
 
-        uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, _sender);
-
-        emit BuyMSO(_pid, _sender, _token, tokenAmount, usdPrice, conciergePrice);
+        uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, msg.sender);
+        emit BuyMSO(_pid, msg.sender, _token, tokenAmount, priceInUSD, conciergePrice);
     }
 
     function buyProduct(

@@ -4,15 +4,12 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
   const { deploy } = deployments
   const { deployer } = await getNamedAccounts()
 
-  const claimAssessor = await deployments.get("ClaimAssessor");
-
-  await deploy('Actuary', {
+  await deploy('MockERC20', {
     from: deployer,
-    args: [claimAssessor.address],
+    args: ["USDC", "USDC"],
     log: true,
     deterministicDeployment: false,
   })
 }
 
-module.exports.tags = ["Actuary", "UnoRe"];
-module.exports.dependencies = ["ClaimAssessor"]
+module.exports.tags = ["USDC", "PolkaCover", "Mock Token"];

@@ -13,6 +13,8 @@ contract BasePolkaOffChain is Ownable {
     mapping(uint256 => address) private _ownerOf; // productId => owner
     mapping(address => uint64) private _balanceOf; // owner => balance We can think one user can buy max 2**64 products
     mapping(address => uint64[]) private _productsOf; // owner => productIds[]
+
+    // TODO it should be EnumerableSet
     mapping(address => bool) public availableCurrencies;
 
     address public immutable WETH;
@@ -23,11 +25,13 @@ contract BasePolkaOffChain is Ownable {
     constructor(
         address _WETH,
         address _exchangeAgent,
-        address _devWallet
+        address _devWallet,
+        address _multiSigWallet
     ) {
         WETH = _WETH;
         exchangeAgent = _exchangeAgent;
         devWallet = _devWallet;
+        transferOwnership(_multiSigWallet);
     }
 
     modifier onlyAvailableToken(address _token) {
@@ -42,6 +46,7 @@ contract BasePolkaOffChain is Ownable {
     }
 
     function ownerOf(uint256 _prodId) public view returns (address) {
+        require(_prodId < productIds.current() + 1, "Invalid product ID");
         return _ownerOf[_prodId];
     }
 
@@ -54,7 +59,6 @@ contract BasePolkaOffChain is Ownable {
     }
 
     function _buyProduct(address _buyer, uint256 _pid) internal {
-        require(_pid < productIds.current(), "Invalid product ID");
         _productsOf[_buyer].push(uint64(_pid));
         emit BuyProduct(_pid, _buyer);
     }

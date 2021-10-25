@@ -29,7 +29,19 @@ function getBigNumber(amount, decimals = 18) {
   return BigNumber.from(amount).mul(BigNumber.from(10).pow(decimals));
 }
 
+function getPaddedHexStrFromBN(bn) {
+  const hexStr = ethers.utils.hexlify(bn);
+  return ethers.utils.hexZeroPad(hexStr, 32);
+}
+
+function getHexStrFromStr(str) {
+  const strBytes = ethers.utils.toUtf8Bytes(str);
+  return ethers.utils.hexlify(strBytes);
+}
+
 module.exports = {
   getCreate2CohortAddress,
   getBigNumber,
+  getPaddedHexStrFromBN,
+  getHexStrFromStr,
 };
