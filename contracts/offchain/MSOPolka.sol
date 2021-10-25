@@ -66,26 +66,27 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
 
     /**
      * @dev buyProductByToken function:
-     * this should be called through MultiSigWallet for gasless work
+     * TODO check if this should be onlyOwner or not. If it is not onlyOwner, users can call this function directly.
      */
     function buyProductByToken(
         string memory productName,
         uint256 priceInUSD,
         uint256 period,
         address _token,
+        address _sender,
         uint256 conciergePrice,
         bytes memory sig
     ) external nonReentrant onlyAvailableToken(_token) {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(productName, priceInUSD, period, conciergePrice);
-        permit(msg.sender, digest, sig);
+        permit(_sender, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, usdPrice);
-        TransferHelper.safeTransferFrom(_token, msg.sender, devWallet, tokenAmount);
+        TransferHelper.safeTransferFrom(_token, _sender, devWallet, tokenAmount);
 
-        uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, msg.sender);
-        emit BuyMSO(_pid, msg.sender, _token, tokenAmount, priceInUSD, conciergePrice);
+        uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, _sender);
+        emit BuyMSO(_pid, _sender, _token, tokenAmount, priceInUSD, conciergePrice);
     }
 
     function buyProduct(

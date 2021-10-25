@@ -8,7 +8,7 @@ import "../interfaces/IExchangeAgent.sol";
 import "../libs/TransferHelper.sol";
 import "./BasePolkaOffChain.sol";
 
-contract P4L is Ownable, ReentrancyGuard, BasePolkaOffChain {
+contract P4LPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
     event BuyP4L(uint256 indexed _productId, address _buyer, address _currency, uint256 _amount, uint256 _priceInUSD);
 
     using Counters for Counters.Counter;
@@ -38,14 +38,14 @@ contract P4L is Ownable, ReentrancyGuard, BasePolkaOffChain {
     function buyProductByETH(
         string memory _device,
         string memory _brand,
-        uint256 _value,
+        uint256 _value, // price in USD
         uint256 _purchMonth,
         uint256 _durPlan,
         bytes memory sig
     ) external payable nonReentrant {
         bytes32 digest = getSignedMsgHash(_device, _brand, _value, _purchMonth, _durPlan);
         permit(msg.sender, digest, sig);
-        uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(WETH, _value);
+        uint256 tokenAmount = IExchangeAgent(exchangeAgent).getETHAmountForUSDC(_value);
 
         require(msg.value >= tokenAmount, "Insufficient amount");
         if (msg.value > tokenAmount) {
