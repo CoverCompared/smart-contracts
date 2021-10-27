@@ -15,19 +15,14 @@ contract BasePolkaOnChain is Ownable {
     mapping(address => uint64[]) private _productsOf; // owner => productIds[]
     mapping(address => bool) public availableCurrencies;
 
-    address public immutable WETH;
+    // address public immutable WETH;
     // TODO should it be public?
     address public exchangeAgent;
 
-    /**
-     * @dev _WETH depends on what address partners uses for WETH on their smart contract
-     */
     constructor(
-        address _WETH,
         address _CVR,
         address _exchangeAgent
     ) {
-        WETH = _WETH;
         availableCurrencies[_CVR] = true;
         exchangeAgent = _exchangeAgent;
     }

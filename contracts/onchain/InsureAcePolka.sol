@@ -18,11 +18,10 @@ contract BuyCoverExample is BasePolkaOnChain {
     address public coverContractAddress;
 
     constructor(
-        address _WETH,
         address _CVR,
         address _exchangeAgent,
         address _coverContractAddress
-    ) BasePolkaOnChain(_WETH, _CVR, _exchangeAgent) {
+    ) BasePolkaOnChain(_CVR, _exchangeAgent) {
         require(_coverContractAddress != address(0), "S:1");
         coverContractAddress = _coverContractAddress;
     }
