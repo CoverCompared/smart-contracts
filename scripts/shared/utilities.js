@@ -28,9 +28,22 @@ function getHexStrFromStr(str) {
   return ethers.utils.hexlify(strBytes);
 }
 
+async function advanceBlock() {
+  return ethers.provider.send('evm_mine', []);
+}
+
+async function advanceBlockTo(blockNumber) {
+  for (let i = await ethers.provider.getBlockNumber(); i < blockNumber; i++) {
+    console.log(`mined block ${i}`);
+    await advanceBlock();
+  }
+}
+
 module.exports = {
   getCreate2CohortAddress,
   getBigNumber,
   getPaddedHexStrFromBN,
   getHexStrFromStr,
+  advanceBlock,
+  advanceBlockTo,
 };

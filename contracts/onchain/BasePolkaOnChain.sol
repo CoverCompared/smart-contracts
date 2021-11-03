@@ -19,10 +19,7 @@ contract BasePolkaOnChain is Ownable {
     // TODO should it be public?
     address public exchangeAgent;
 
-    constructor(
-        address _CVR,
-        address _exchangeAgent
-    ) {
+    constructor(address _CVR, address _exchangeAgent) {
         availableCurrencies[_CVR] = true;
         exchangeAgent = _exchangeAgent;
     }
@@ -44,6 +41,10 @@ contract BasePolkaOnChain is Ownable {
 
     function _increaseBalance(address _account) internal {
         _balanceOf[_account]++;
+    }
+
+    function _increateBulkBalance(address _account, uint _amount) internal {
+        _balanceOf[_account] += uint64(_amount);
     }
 
     function balanceOf(address _account) public view returns (uint64) {

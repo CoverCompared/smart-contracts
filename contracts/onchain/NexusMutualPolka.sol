@@ -91,62 +91,6 @@ contract NexusMutualPolka is ERC721Holder, BasePolkaOnChain {
         emit BuyNexusMutual(_distributor, productId, coverAsset, productPrice);
     }
 
-    // function buyCoverByToken(
-    //     address _token,
-    //     address _distributor,
-    //     address contractAddress,
-    //     address coverAsset,
-    //     uint256 sumAssured,
-    //     uint16 coverPeriod,
-    //     uint8 coverType,
-    //     uint256 maxPriceWithFee,
-    //     bytes calldata data
-    // ) external onlyAvailableToken(_token) {
-    //     uint256 productPrice = getProductPrice(
-    //         _distributor,
-    //         contractAddress,
-    //         coverAsset,
-    //         sumAssured,
-    //         coverPeriod,
-    //         coverType,
-    //         data
-    //     );
-
-    //     uint256 amount;
-    //     uint256 value;
-    
-    //     if (coverAsset == INexusMutual(_distributor).WETH()) {
-    //         amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_token, productPrice);
-    //         value = productPrice;
-    //     } else {
-    //         amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_token, coverAsset, productPrice);           
-    //     }
-
-    //     TransferHelper.safeTransferFrom(_token, msg.sender, address(this), amount);
-    //     TransferHelper.safeApprove(_token, exchangeAgent, amount);
-        
-    //     if (coverAsset == INexusMutual(_distributor).WETH()) {            
-    //         IExchangeAgent(exchangeAgent).swapTokenWithETH(_token, amount);
-    //     } else {
-    //         IExchangeAgent(exchangeAgent).swapTokenWithToken(_token, coverAsset, amount);
-    //         TransferHelper.safeApprove(coverAsset, _distributor, productPrice);       
-    //     }
-
-    //     uint256 productId = INexusMutual(_distributor).buyCover{value: value}(
-    //         contractAddress,
-    //         coverAsset,
-    //         sumAssured,
-    //         coverPeriod,
-    //         coverType,
-    //         maxPriceWithFee,
-    //         data
-    //     );
-
-    //     buyCover(_distributor, productId);
-
-    //     emit BuyNexusMutual(_distributor, productId, _token, amount);
-    // }
-
     function buyCoverByToken(
         address _distributor,
         address[] memory _assets, // _token, contractAddress, coverAsset
@@ -156,34 +100,26 @@ contract NexusMutualPolka is ERC721Holder, BasePolkaOnChain {
         uint256 maxPriceWithFee,
         bytes calldata data
     ) external onlyAvailableToken(_assets[0]) {
-        uint256 productPrice = getProductPrice(
-            _distributor,
-            _assets[1],
-            _assets[2],
-            sumAssured,
-            coverPeriod,
-            coverType,
-            data
-        );
+        uint256 productPrice = getProductPrice(_distributor, _assets[1], _assets[2], sumAssured, coverPeriod, coverType, data);
 
         uint256 amount;
         uint256 value;
-    
+
         if (_assets[2] == INexusMutual(_distributor).WETH()) {
             amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_assets[0], productPrice);
             value = productPrice;
         } else {
-            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_assets[0], _assets[2], productPrice);           
+            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_assets[0], _assets[2], productPrice);
         }
 
         TransferHelper.safeTransferFrom(_assets[0], msg.sender, address(this), amount);
         TransferHelper.safeApprove(_assets[0], exchangeAgent, amount);
-        
-        if (_assets[2] == INexusMutual(_distributor).WETH()) {            
+
+        if (_assets[2] == INexusMutual(_distributor).WETH()) {
             IExchangeAgent(exchangeAgent).swapTokenWithETH(_assets[0], amount);
         } else {
             IExchangeAgent(exchangeAgent).swapTokenWithToken(_assets[0], _assets[2], amount);
-            TransferHelper.safeApprove(_assets[2], _distributor, productPrice);       
+            TransferHelper.safeApprove(_assets[2], _distributor, productPrice);
         }
 
         uint256 productId = INexusMutual(_distributor).buyCover{value: value}(
