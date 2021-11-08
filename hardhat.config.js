@@ -81,7 +81,7 @@ module.exports = {
       gasPrice: "auto"
     },
     // hardhat: {
-    //   gasPrice: parseInt(utils.parseUnits("50", "gwei")),
+    //   gasPrice: "auto",
     // },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,

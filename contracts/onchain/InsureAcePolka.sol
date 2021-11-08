@@ -4,14 +4,19 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "../interfaces/IExchangeAgent.sol";
 import {IInsureAce} from "../interfaces/IInsureAce.sol";
-import "../libs/TransferHelper.sol";
 import "./BasePolkaOnChain.sol";
 
-import "hardhat/console.sol";
-
+/**
+ * We are supporting only CVR for InsureAce
+ */
 contract InsureAcePolka is BasePolkaOnChain {
+    event BuyInsureAce(uint16[] productIds, address _buyer, address _currency, uint256 _amount);
+
     address public coverContractAddress;
+    address public constant WETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address public immutable CVR;
 
     constructor(
         address _CVR,
@@ -19,6 +24,7 @@ contract InsureAcePolka is BasePolkaOnChain {
         address _coverContractAddress
     ) BasePolkaOnChain(_CVR, _exchangeAgent) {
         require(_coverContractAddress != address(0), "S:1");
+        CVR = _CVR;
         coverContractAddress = _coverContractAddress;
     }
 
@@ -41,6 +47,7 @@ contract InsureAcePolka is BasePolkaOnChain {
         bytes32[] memory r,
         bytes32[] memory s
     ) external payable {
+        require(currency == WETH, "Not ETH product");
         require(msg.value >= premiumAmount, "Insufficient amount");
         if (msg.value - premiumAmount > 0) {
             TransferHelper.safeTransferETH(msg.sender, msg.value - premiumAmount);
@@ -61,46 +68,59 @@ contract InsureAcePolka is BasePolkaOnChain {
             s
         );
 
-        // emit PurchasedProduct(coverContractAddress, "InsureAce", 0, msg.sender, currency, premiumAmount);
+        emit BuyInsureAce(products, owner, currency, premiumAmount);
     }
 
-    // function buyCoverByToken(
-    //     uint16[] memory products,
-    //     uint16[] memory durationInDays,
-    //     uint256[] memory amounts,
-    //     address currency,
-    //     address owner,
-    //     uint256 referralCode,
-    //     uint256 premiumAmount,
-    //     uint256[] memory helperParameters,
-    //     uint256[] memory securityParameters,
-    //     uint8[] memory v,
-    //     bytes32[] memory r,
-    //     bytes32[] memory s
-    // ) external {
-    //     // ensure you have enough premium in current contract as the coverContract will utilize
-    //     // safeTransferFrom for ERC20 token or
-    //     // check msg.value in case you are using native token
-    //     TransferHelper.safeTransferFrom(currency, owner, address(this), premiumAmount);
-    //     TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
+    /**
+     * @dev Through this function, users can get covers from Insure by some tokens such as CVR...
+     * if users want to save gas fee, he shoud reach to this function through MultiSigWallet.
+     */
+    function buyCoverByToken(
+        uint16[] memory products,
+        uint16[] memory durationInDays,
+        uint256[] memory amounts,
+        address currency,
+        address owner,
+        uint256 referralCode,
+        uint256 premiumAmount,
+        uint256[] memory helperParameters,
+        uint256[] memory securityParameters,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    ) external payable {
+        uint256 amount;
+        if (currency == WETH) {
+            amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(CVR, premiumAmount);
+        } else {
+            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(CVR, currency, premiumAmount);
+        }
 
-    //     // IInsureAce(coverContractAddress).buyCover(
-    //     //     products,
-    //     //     durationInDays,
-    //     //     amounts,
-    //     //     currency,
-    //     //     owner,
-    //     //     referralCode,
-    //     //     premiumAmount,
-    //     //     helperParameters,
-    //     //     securityParameters,
-    //     //     v,
-    //     //     r,
-    //     //     s
-    //     // );
+        TransferHelper.safeTransferFrom(CVR, msg.sender, address(this), amount);
+        TransferHelper.safeApprove(CVR, exchangeAgent, amount);
 
-    //     address tmp = IInsureAce(coverContractAddress).data();
+        if (currency == WETH) {
+            IExchangeAgent(exchangeAgent).swapTokenWithETH(CVR, amount);
+        } else {
+            IExchangeAgent(exchangeAgent).swapTokenWithToken(CVR, currency, amount);
+            TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
+        }
 
-    //     // emit PurchasedProduct(coverContractAddress, "InsureAce", 0, msg.sender, currency, premiumAmount);
-    // }
+        IInsureAce(coverContractAddress).buyCover{value: premiumAmount}(
+            products,
+            durationInDays,
+            amounts,
+            currency,
+            owner,
+            referralCode,
+            premiumAmount,
+            helperParameters,
+            securityParameters,
+            v,
+            r,
+            s
+        );
+
+        emit BuyInsureAce(products, owner, currency, premiumAmount);
+    }
 }

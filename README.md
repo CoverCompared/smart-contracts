@@ -4,6 +4,7 @@
  - WETH(uniswap v2)_CVR pair: 0xaf93ce2f26fda14d8a17c531e22ae841408c0747
  - CVR_USDC pair: 0xf65e0c8c7e47659406b0f803ab2d998ae78a3cc6
  - WETH_USDC pair: 0xb7b809b162f12ade432b227d5298ab9c9e9bea6c
+ - CVR_WETH pair: 0xaf93ce2f26fda14d8a17c531e22ae841408c0747
 
 # Kovan
  - Neuxs Mutual Distributor on Kovan

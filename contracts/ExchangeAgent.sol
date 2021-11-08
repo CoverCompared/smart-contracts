@@ -9,6 +9,8 @@ import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import "./interfaces/IExchangeAgent.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @dev This smart contract is for getting CVR_ETH, CVR_USDT price
  */
@@ -17,6 +19,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     event RemovedGateway(address _sender, address _gateway);
     event SetCurrency(address _sender, address _currency, address _pair);
     event RemovedCurrency(address _sender, address _currency);
+    event WithdrawAsset(address _user, address _to, address _token, uint256 _amount);
 
     mapping(address => bool) public whiteList; // white listed polka gateways
     // available currencies in Polkacover, token => pair
@@ -52,8 +55,12 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         address _token1,
         uint256 _desiredAmount
     ) private view returns (uint256) {
+        console.log("SC ===>  UNISWAP_FACTORY", UNISWAP_FACTORY);
+        console.log("SC ===> _WETH", WETH);
+        console.log("SC ===> token0", _token0);
+        console.log("SC ===> token1", _token1);
         address pair = IUniswapV2Factory(UNISWAP_FACTORY).getPair(_token0, _token1);
-        require(pair != address(0), "There's no stable pair");
+        require(pair != address(0), "There's no pair");
 
         address token0 = IUniswapV2Pair(pair).token0();
         (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pair).getReserves();
@@ -68,7 +75,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
             numerator = reserve1 * _desiredAmount;
         }
 
-        return (numerator * (10**IERC20Metadata(_token0).decimals())) / denominator;
+        return numerator / denominator;
     }
 
     /**
@@ -91,6 +98,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     }
 
     function getTokenAmountForETH(address _token, uint256 _desiredAmount) external view override returns (uint256) {
+        console.log("_token", _token);
         return _getNeededTokenAmount(_token, WETH, _desiredAmount);
     }
 
@@ -122,7 +130,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         uint256 _amount
     ) private {
         address pair = IUniswapV2Factory(UNISWAP_FACTORY).getPair(_token0, _token1);
-        require(pair != address(0), "There's no stable pair");
+        require(pair != address(0), "There's no pair");
 
         address token0 = IUniswapV2Pair(pair).token0();
         (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pair).getReserves();
@@ -167,5 +175,18 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     function removeCurrency(address _currency) external onlyOwner {
         require(availableCurrencies[_currency], "Not available yet");
         availableCurrencies[_currency] = false;
+    }
+
+    function withdrawAsset(
+        address _to,
+        address _token,
+        uint256 _amount
+    ) external onlyOwner {
+        if (_token == address(0)) {
+            TransferHelper.safeTransferETH(_to, _amount);
+        } else {
+            TransferHelper.safeTransfer(_token, _to, _amount);
+        }
+        emit WithdrawAsset(owner(), _to, _token, _amount);
     }
 }

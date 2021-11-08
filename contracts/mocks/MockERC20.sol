@@ -14,4 +14,8 @@ contract MockERC20 is Ownable, ERC20 {
     constructor(string memory _name_, string memory _symbol_) ERC20(_name_, _symbol_) {
         _mint(msg.sender, INITIAL_SUPPLY);
     }
+
+    // function faucetToken(uint256 _amount) external {
+    //     require(_a);
+    // }
 }
