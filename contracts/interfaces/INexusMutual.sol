@@ -13,7 +13,9 @@ interface INexusMutual {
         bytes calldata data
     ) external payable returns (uint256);
 
-    function WETH() external view returns (address);
+    function ETH() external view returns (address);
 
     function feePercentage() external view returns (uint256);
+
+    function gateway() external view returns (address);
 }

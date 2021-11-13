@@ -5,18 +5,6 @@ const UniswapV2Router = require('../abis/UniswapV2Router.json');
 const UniswapV2Factory = require('../abis/UniswapV2Factory.json');
 const ERC20 = require('../abis/ERC20.json');
 
-function getCreate2CohortAddress(actuaryAddress, { cohortName, sender, nonce }, bytecode) {
-  const create2Inputs = [
-    '0xff',
-    actuaryAddress,
-    ethers.utils.keccak256(ethers.utils.solidityPack(['address', 'string', 'uint'], [sender, cohortName, nonce])),
-    ethers.utils.keccak256(bytecode),
-  ];
-  const sanitizedInputs = `0x${create2Inputs.map((i) => i.slice(2)).join('')}`;
-
-  return ethers.utils.getAddress(`0x${ethers.utils.keccak256(sanitizedInputs).slice(-40)}`);
-}
-
 // Defaults to e18 using amount * 10^18
 function getBigNumber(amount, decimals = 18) {
   return BigNumber.from(amount).mul(BigNumber.from(10).pow(decimals));
@@ -71,8 +59,6 @@ async function createPair(router, factory, token0, token1, amount0, amount1, to,
 }
 
 async function createPairETH(router, factory, token0, amountToken, amountETH, to, signer) {
-  console.log('router', router);
-  console.log('factory', factory);
   const deadline = new Date().getTime();
   const routerContract = getContract(router, JSON.stringify(UniswapV2Router));
   const factoryContract = getContract(factory, JSON.stringify(UniswapV2Factory));
@@ -88,17 +74,15 @@ async function createPairETH(router, factory, token0, amountToken, amountETH, to
       value: amountETH,
     })
   ).wait();
+  console.log('Added liquidity', token0);
 
-  const WETH = await routerContract.WETH();
-  console.log('WETH in Router', WETH);
-
+  const WETH = await routerContract.connect(signer).WETH();
   const pair = await factoryContract.getPair(token0, WETH);
 
   return pair;
 }
 
 module.exports = {
-  getCreate2CohortAddress,
   getBigNumber,
   getPaddedHexStrFromBN,
   getHexStrFromStr,

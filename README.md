@@ -12,3 +12,7 @@
    KYC done https://kovan.etherscan.io/tx/0xa371dd8875b44b178e3f28ecd6f763259913b06e4c594eefe7f4ea406ae9a458
 
    
+
+## TODO list
+### Nexus Mutual
+  - coverAsset parameter: Can we set available cover assets if we create distributor?

@@ -9,8 +9,6 @@ import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import "./interfaces/IExchangeAgent.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @dev This smart contract is for getting CVR_ETH, CVR_USDT price
  */
@@ -55,10 +53,6 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         address _token1,
         uint256 _desiredAmount
     ) private view returns (uint256) {
-        console.log("SC ===>  UNISWAP_FACTORY", UNISWAP_FACTORY);
-        console.log("SC ===> _WETH", WETH);
-        console.log("SC ===> token0", _token0);
-        console.log("SC ===> token1", _token1);
         address pair = IUniswapV2Factory(UNISWAP_FACTORY).getPair(_token0, _token1);
         require(pair != address(0), "There's no pair");
 
@@ -98,7 +92,6 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     }
 
     function getTokenAmountForETH(address _token, uint256 _desiredAmount) external view override returns (uint256) {
-        console.log("_token", _token);
         return _getNeededTokenAmount(_token, WETH, _desiredAmount);
     }
 

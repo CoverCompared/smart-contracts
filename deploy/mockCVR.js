@@ -6,7 +6,7 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
 
   await deploy('MockERC20', {
     from: deployer,
-    args: ["CVR", "CVR"],
+    args: ["CVRs", "CVR"],
     log: true,
     deterministicDeployment: false,
   })

@@ -1,108 +1,133 @@
-// const fetch = require('node-fetch');
-// // const { artifacts, web3 } = require('hardhat');
-// // const { artifacts, ethers } = require('hardhat');
-// // const { ether } = require('@openzeppelin/test-helpers');
-// // const { hex } = require('../lib/helpers');
-// // const BN = web3.utils.BN;
+/**
+ * @dev We are doing test on Ethereum Kovan hardhat
+ */
 
-// // const Distributor = artifacts.require('Distributor');
-// // const NXMToken = artifacts.require('NXMToken');
-// // const NXMaster = artifacts.require('NXMaster');
-// // const TokenController = artifacts.require('TokenController');
-// require("dotenv").config();
+const fetch = require('node-fetch');
+const { expect } = require('chai');
+const { ethers } = require('hardhat');
+const { advanceBlockTo, createPair, createPairETH, getBigNumber } = require('../scripts/shared/utilities');
 
-// async function run () {
+const DISTRIBUTOR_ADDRESS = '0xe77250450fc9f682edeff9f0d252836189c01b53'; // on Kovan
+const UNISWAPV2_ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; // on Kovan
+const UNISWAPV2_FACTORY = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'; // on Kovan
+const WETH = '0xd0a1e359811322d97991e03f863a0c30c2cf029c';
+const COVER_TYPE = 0;
 
-//   const DISTRIBUTOR_ADDRESS = process.env.DISTRIBUTOR_ADDRESS;
-//   const API_REQUEST_ORIGIN = process.env.API_REQUEST_ORIGIN;
-//   const ACCOUNT_KEY = process.env.ACCOUNT_KEY;
-//   // console.log({
-//   //   DISTRIBUTOR_ADDRESS,
-//   //   API_REQUEST_ORIGIN,
-//   // });
+describe('NexusMutualPolka', function () {
+  before(async function () {
+    this.NexusMutualPolka = await ethers.getContractFactory('NexusMutualPolka');
+    this.ExchangeAgent = await ethers.getContractFactory('ExchangeAgent');
+    this.MockERC20 = await ethers.getContractFactory('MockERC20');
+    this.signers = await ethers.getSigners();
 
-//   // const headers = {
-//   //   Origin: API_REQUEST_ORIGIN,
-//   // };
+    this.cvr = await (await this.MockERC20.deploy('CVR', 'CVR')).deployed();
+    this.mockUSDC = await (await this.MockERC20.deploy('USDC', 'USDC')).deployed();
+    this.exchangeAgent = await this.ExchangeAgent.deploy(this.mockUSDC.address, WETH, UNISWAPV2_FACTORY);
 
-//   const headers = {
-//     Origin: 'http://localhost:3000',
-//   };
+    this.cvrETHPair = await createPairETH(
+      UNISWAPV2_ROUTER,
+      UNISWAPV2_FACTORY,
+      this.cvr.address,
+      getBigNumber(500),
+      getBigNumber(1),
+      this.signers[0].address,
+      this.signers[0]
+    );
 
-//   // Setup your cover data.
-//   const coverData = {
-//     coverAmount: '1', // ETH in units not wei
-//     currency: 'ETH',
-//     asset: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // stands for ETH
-//     period: '111', // days
-//     contractAddress: '0x0000000000000000000000000000000000000005', // the contract you will be buying cover for
-//   };
+    this.apiHeader = { Origin: 'http://localhost:3000' };
+    const coverData = {
+      coverAmount: '1', // ETH in units not wei
+      currency: 'ETH',
+      asset: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE', // stands for ETH
+      period: '111', // days
+      contractAddress: '0x0000000000000000000000000000000000000005', // the contract you will be buying cover for
+    };
 
-//   // URL to request a quote for.
-//   const quoteURL = 'https://api.staging.nexusmutual.io/v1/quote?' +
-//     `coverAmount=${coverData.coverAmount}&currency=${coverData.currency}&period=${coverData.period}&contractAddress=${coverData.contractAddress}`;
+    this.coverData = coverData;
+    /** This api endpoint is for Kovan testnet */
+    this.quoteURL =
+      'https://api.staging.nexusmutual.io/v1/quote?' +
+      `coverAmount=${coverData.coverAmount}&currency=${coverData.currency}&period=${coverData.period}&contractAddress=${coverData.contractAddress}`;
 
-//   console.log(quoteURL);
+    await ethers.provider.send('eth_sendTransaction', [
+      { from: this.signers[10].address, to: this.exchangeAgent.address, value: getBigNumber(10).toHexString() },
+    ]);
+    await this.exchangeAgent.addCurrency(this.cvr.address);
+  });
 
-//   const quote = await fetch(quoteURL, { headers }).then(r => r.json());
-//   console.log(quote);
+  beforeEach(async function () {
+    this.nexusMutualPolka = await (
+      await this.NexusMutualPolka.deploy(
+        this.cvr.address,
+        this.exchangeAgent.address, // @todo should be changed ExcahngeAgent
+        DISTRIBUTOR_ADDRESS
+      )
+    ).deployed();
 
-// //   // encode the signature result in the data field
-// //   const data = web3.eth.abi.encodeParameters(
-// //     ['uint', 'uint', 'uint', 'uint', 'uint8', 'bytes32', 'bytes32'],
-// //     [quote.price, quote.priceInNXM, quote.expiresAt, quote.generatedAt, quote.v, quote.r, quote.s],
-// //   );
+    await this.exchangeAgent.addWhiteList(this.nexusMutualPolka.address);
+  });
 
-// //   const distributor = await Distributor.at(DISTRIBUTOR_ADDRESS);
+  it('Should get data from Nexus API', async function () {
+    const quote = await fetch(this.quoteURL, { headers: this.headers }).then((r) => r.json());
+  });
 
-// //   // add the fee on top of the base price
-// //   const feePercentage = await distributor.feePercentage();
-// //   const basePrice = new BN(quote.price);
-// //   const priceWithFee = basePrice.mul(feePercentage).divn(10000).add(basePrice);
+  it('Should buy product By ETH', async function () {
+    const quote = await fetch(this.quoteURL, { headers: this.headers }).then((r) => r.json());
+    // {
+    //   currency: 'ETH',
+    //   period: '111',
+    //   amount: '1',
+    //   price: '66026290216319654',
+    //   priceInNXM: '1726147109619947834',
+    //   expiresAt: 1641910780,
+    //   generatedAt: 1636726779229,
+    //   contract: '0x0000000000000000000000000000000000000005',
+    //   v: 27,
+    //   r: '0xd8876b4e4edcf6a8504f94d4ddd373343954a3727713ee09d04e7fea3ffad1b2',
+    //   s: '0x4048ec8fde7226cdd60c1911c0e1bd0eb8013a50f67b517201c29e2150aa4c7b'
+    // }
+    const contractAddress = this.coverData.contractAddress;
+    const coverAsset = this.coverData.asset;
+    const sumAssured = getBigNumber(this.coverData.coverAmount);
+    const coverPeriod = this.coverData.period;
+    const coverType = COVER_TYPE;
+    const data = ethers.utils.defaultAbiCoder.encode(
+      ['uint', 'uint', 'uint', 'uint', 'uint8', 'bytes32', 'bytes32'],
+      [quote.price, quote.priceInNXM, quote.expiresAt, quote.generatedAt, quote.v, quote.r, quote.s]
+    );
 
-// //   // quote-api signed quotes are cover type = 0; only one cover type is supported at this point.
-// //   const COVER_TYPE = 0;
+    const expectedPrice = await this.nexusMutualPolka.getProductPrice(contractAddress, coverAsset, sumAssured, coverPeriod, coverType, data);
+    console.log(`expectedPrice ${expectedPrice.toString()}`);
 
-// //   const amountInWei = ether(coverData.coverAmount.toString());
+    await this.nexusMutualPolka.buyCoverByETH(contractAddress, coverAsset, sumAssured, coverPeriod, coverType, expectedPrice, data, {
+      value: expectedPrice,
+    });
+  });
 
-// //   console.log('approve NXM...');
-// //   const master = await NXMaster.at(await distributor.master());
-// //   const tokenController = await TokenController.at(await master.getLatestAddress(hex('TC')));
+  it('Should buy product by token', async function () {
+    const quote = await fetch(this.quoteURL, { headers: this.headers }).then((r) => r.json());
 
-// //   // needs to be done only once! necessary for receiving the locked NXM deposit.
-// //   await distributor.approveNXM(tokenController.address, ether('100000'));
+    const contractAddress = this.coverData.contractAddress;
+    const coverAsset = this.coverData.asset;
+    const sumAssured = getBigNumber(this.coverData.coverAmount);
+    const coverPeriod = this.coverData.period;
+    const coverType = COVER_TYPE;
+    const data = ethers.utils.defaultAbiCoder.encode(
+      ['uint', 'uint', 'uint', 'uint', 'uint8', 'bytes32', 'bytes32'],
+      [quote.price, quote.priceInNXM, quote.expiresAt, quote.generatedAt, quote.v, quote.r, quote.s]
+    );
 
-// //   console.log({
-// //     feePercentage: feePercentage.toString(),
-// //     priceWithFee: priceWithFee.toString(),
-// //     amountInWei: amountInWei.toString(),
-// //     COVER_TYPE,
-// //   });
+    const expectedPrice = await this.nexusMutualPolka.getProductPrice(contractAddress, coverAsset, sumAssured, coverPeriod, coverType, data);
+    console.log(`expectedPrice ${expectedPrice.toString()}`);
 
-// //   // price is deterministic right now. can set the max price to be equal with the actual price.
-// //   const maxPriceWithFee = priceWithFee;
-
-// //   // execute the buy cover operation on behalf of the user.
-// //   const tx = await distributor.buyCover(
-// //     coverData.contractAddress,
-// //     coverData.asset,
-// //     amountInWei,
-// //     coverData.period,
-// //     COVER_TYPE,
-// //     maxPriceWithFee,
-// //     data, {
-// //       value: priceWithFee,
-// //     });
-
-// //   const coverId = tx.logs[1].args.coverId.toString();
-// //   console.log(`Bought cover successfully. cover id: ${coverId}`);
-// }
-
-// run()
-//   .then(() => {
-//     process.exit(0);
-//   })
-//   .catch(error => {
-//     console.error('An unexpected error encountered:', error);
-//     process.exit(1);
-//   });
+    await this.cvr.approve(this.nexusMutualPolka.address, getBigNumber(10000000000));
+    await this.nexusMutualPolka.buyCoverByToken(
+      [this.cvr.address, contractAddress, coverAsset],
+      sumAssured,
+      coverPeriod,
+      coverType,
+      expectedPrice,
+      data
+    );
+  });
+});

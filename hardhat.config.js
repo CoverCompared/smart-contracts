@@ -65,6 +65,23 @@ module.exports = {
     //   gasPrice: "auto",
     //   accounts
     // },
+    /** Mainnet fork for InsureAce polka */
+    // hardhat: {
+    //   allowUnlimitedContractSize: true,
+    //   settings: {
+    //     optimizer: {
+    //       enabled: true,
+    //       runs: 9999,
+    //     },
+    //   },
+    //   forking: {
+    //     url: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+    //     enabled: true,
+    //     // blockNumber: 13138661, // 12302937,
+    //   },
+    //   gasPrice: "auto"
+    // },
+    /** Kovan fork for NexusMutual  */
     hardhat: {
       allowUnlimitedContractSize: true,
       settings: {
@@ -74,7 +91,7 @@ module.exports = {
         },
       },
       forking: {
-        url: "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+        url: "https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
         enabled: true,
         // blockNumber: 13138661, // 12302937,
       },
