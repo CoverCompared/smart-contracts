@@ -47,24 +47,25 @@ module.exports = {
     },
   },
   networks: {
-    // hardhat: {
-    //   hardfork: "london",
-    //   allowUnlimitedContractSize: true,
-    //   settings: {
-    //     optimizer: {
-    //       enabled: true,
-    //       runs: 9999,
-    //     },
-    //   },
-    //   evmVersion: "byzantium",
-    //   forking: {
-    //     url: "https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB",
-    //     enabled: true,
-    //     blockNumber: 9525872
-    //   },
-    //   gasPrice: "auto",
-    //   accounts
-    // },
+    /** Testing for InsureAce on rinkeby testnet */
+    hardhat: {
+      hardfork: "london",
+      allowUnlimitedContractSize: true,
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 9999,
+        },
+      },
+      evmVersion: "byzantium",
+      forking: {
+        // url: "https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB",
+        url: "https://rinkeby.infura.io/v3/543a595517b74e008ed1cddf79c46cf8",
+        enabled: true
+      },
+      gasPrice: "auto",
+      accounts
+    },
     /** Mainnet fork for InsureAce polka */
     // hardhat: {
     //   allowUnlimitedContractSize: true,
@@ -82,21 +83,21 @@ module.exports = {
     //   gasPrice: "auto"
     // },
     /** Kovan fork for NexusMutual  */
-    hardhat: {
-      allowUnlimitedContractSize: true,
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 9999,
-        },
-      },
-      forking: {
-        url: "https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
-        enabled: true,
-        // blockNumber: 13138661, // 12302937,
-      },
-      gasPrice: "auto"
-    },
+    // hardhat: {
+    //   allowUnlimitedContractSize: true,
+    //   settings: {
+    //     optimizer: {
+    //       enabled: true,
+    //       runs: 9999,
+    //     },
+    //   },
+    //   forking: {
+    //     url: "https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+    //     enabled: true,
+    //     // blockNumber: 13138661, // 12302937,
+    //   },
+    //   gasPrice: "auto"
+    // },
     // hardhat: {
     //   gasPrice: "auto",
     // },

@@ -8,6 +8,7 @@ contract BasePolkaOffChain is Ownable {
     using Counters for Counters.Counter;
 
     event BuyProduct(uint256 indexed _productId, address _buyer);
+    event SetExchangeAgent(address _setter, address _exchangeAgent);
 
     Counters.Counter public productIds;
     mapping(uint256 => address) private _ownerOf; // productId => owner
@@ -40,6 +41,12 @@ contract BasePolkaOffChain is Ownable {
     }
 
     receive() external payable {}
+
+    function setExchangeAgent(address _exchangeAgent) external onlyOwner {
+        require(_exchangeAgent != address(0), "ZERO Address");
+        exchangeAgent = _exchangeAgent;
+        emit SetExchangeAgent(msg.sender, _exchangeAgent);
+    }
 
     function _setProductOwner(uint256 _prodId, address _owner) internal {
         _ownerOf[_prodId] = _owner;

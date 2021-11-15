@@ -8,14 +8,14 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract MockERC20 is Ownable, ERC20 {
     uint256 INITIAL_SUPPLY = 1000000000000 * 10**18;
 
-    mapping(address => uint256) private _faucets;
     uint256 public constant faucetLimit = 500000 * 10**18;
 
     constructor(string memory _name_, string memory _symbol_) ERC20(_name_, _symbol_) {
         _mint(msg.sender, INITIAL_SUPPLY);
     }
 
-    // function faucetToken(uint256 _amount) external {
-    //     require(_a);
-    // }
+    function faucetToken(uint256 _amount) external {
+        require(_amount <= faucetLimit, "Exceed limit");
+        _mint(msg.sender, _amount);
+    }
 }

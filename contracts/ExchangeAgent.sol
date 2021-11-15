@@ -13,10 +13,10 @@ import "./interfaces/IExchangeAgent.sol";
  * @dev This smart contract is for getting CVR_ETH, CVR_USDT price
  */
 contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
-    event AddedGateway(address _sender, address _gateway);
-    event RemovedGateway(address _sender, address _gateway);
-    event SetCurrency(address _sender, address _currency, address _pair);
-    event RemovedCurrency(address _sender, address _currency);
+    event AddGateway(address _sender, address _gateway);
+    event RemoveGateway(address _sender, address _gateway);
+    event AddAvailableCurrency(address _sender, address _currency);
+    event RemoveAvailableCurrency(address _sender, address _currency);
     event WithdrawAsset(address _user, address _to, address _token, uint256 _amount);
 
     mapping(address => bool) public whiteList; // white listed polka gateways
@@ -153,21 +153,25 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     function addWhiteList(address _gateway) external onlyOwner {
         require(!whiteList[_gateway], "Already white listed");
         whiteList[_gateway] = true;
+        emit AddGateway(msg.sender, _gateway);
     }
 
     function removeWhiteList(address _gateway) external onlyOwner {
         require(whiteList[_gateway], "Not white listed");
         whiteList[_gateway] = false;
+        emit RemoveGateway(msg.sender, _gateway);
     }
 
     function addCurrency(address _currency) external onlyOwner {
         require(!availableCurrencies[_currency], "Already available");
         availableCurrencies[_currency] = true;
+        emit AddAvailableCurrency(msg.sender, _currency);
     }
 
     function removeCurrency(address _currency) external onlyOwner {
         require(availableCurrencies[_currency], "Not available yet");
         availableCurrencies[_currency] = false;
+        emit RemoveAvailableCurrency(msg.sender, _currency);
     }
 
     function withdrawAsset(
