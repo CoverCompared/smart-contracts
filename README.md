@@ -24,11 +24,26 @@
 
 
 # Kovan Deployment
- - Neuxs Mutual Distributor on Kovan
-   https://kovan.etherscan.io/address/0xe77250450fc9f682edeff9f0d252836189c01b53#readContract
-   KYC done https://kovan.etherscan.io/tx/0xa371dd8875b44b178e3f28ecd6f763259913b06e4c594eefe7f4ea406ae9a458
+  - Neuxs Mutual Distributor on Kovan
+    https://kovan.etherscan.io/address/0xe77250450fc9f682edeff9f0d252836189c01b53#readContract
+    KYC done https://kovan.etherscan.io/tx/0xa371dd8875b44b178e3f28ecd6f763259913b06e4c594eefe7f4ea406ae9a458
 
-   
+## Prerequisites
+  - CVR: 0xFc9B2B2565B38511B9822887F99D036d694a11e6
+  - USDC: 0x5FED7f0b36374B8Ee25177b3cbE21B6c8E079F4E
+  - WETH(uniswap V2): 0xd0a1e359811322d97991e03f863a0c30c2cf029c
+  - WETH(uniswap v2)_CVR pair: 0xe02c1be3ef7e166b9112498584fc2eea4656f840
+  - USDC_WETH pair: 0x8d94313ebbb75f608d3569bbcae70566761beb87
+  - USDC_CVR pair: 0xe15a2367a334f445ffcba7be5ee1e423c963685a
+ 
+  - ExchangeAgent: 0x95635bB88C887ff2464801B989d5483ac8BFe6F8
+  - MultiSigWallet: 0x01e116289819bFb500505C89F1AcdF27200a8670
+
+## Polkas
+### OffChain partners
+
+### OnChain partners
+  - NexusMutualPolka: 0x77049864cCa895D8A197938CE72008ff795e4A30
 
 ## TODO list
 ### Nexus Mutual

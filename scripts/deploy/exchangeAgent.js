@@ -17,4 +17,4 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
   });
 };
 
-module.exports.tags = ['CVR', 'PolkaCover', 'Mock Token'];
+module.exports.tags = ['ExchangeAgent', 'PolkaCover'];

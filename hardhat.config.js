@@ -118,6 +118,16 @@ module.exports = {
       gasPrice: 5000000000,
       gasMultiplier: 2,
     },
+    kovan: {
+      url: `https://kovan.infura.io/v3/${process.env.INFURA_KEY}`,
+      accounts,
+      chainId: 42,
+      live: true,
+      saveDeployments: true,
+      tags: ["staging"],
+      gasPrice: 20000000000,
+      gasMultiplier: 2,
+    },
     bscTest: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,
