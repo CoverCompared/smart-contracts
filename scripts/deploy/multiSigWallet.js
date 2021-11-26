@@ -5,10 +5,8 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
   const { deployer } = await getNamedAccounts();
 
   const signers = [
-    '0x396FA529e1B1D9582f5016511A88a7BA28190965',
-    '0x1Df437DE4C327CE210A18FF25EbB7322AEA50095',
-    '0xC7D822328aC1e28a82B1b333ac077511B050fc9F',
-    '0x15C1e78536F761B2FeD10f1EcDb6db6B4D1E5d5F',
+    '0x6C641CE6A7216F12d28692f9d8b2BDcdE812eD2b',
+    '0xDEfd29b83702cC5dA21a65Eed1FEC2CEAB768074'
   ];
   const _numConfirmationsRequired = 2;
 
