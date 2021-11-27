@@ -4,8 +4,8 @@
  * @note Please check what network you are playing on now
  */
 module.exports = async function ({ ethers, getNamedAccounts, deployments, getChainId }) {
-  const { deploy } = deployments
-  const { deployer } = await getNamedAccounts()
+  const { deploy } = deployments;
+  const { deployer } = await getNamedAccounts();
 
   /** @note Check these addresses every deployment,  */
   const _CVR = '0xd3e48FAcD30A73609ffA60AE84851e72d10fEa52';
@@ -17,7 +17,7 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
     args: [_CVR, _exchangeAgent, _coverContractAddress],
     log: true,
     deterministicDeployment: false,
-  })
-}
+  });
+};
 
-module.exports.tags = ["InsureAcePolka", "PolkaCover"];
+module.exports.tags = ['InsureAcePolka', 'PolkaCover'];

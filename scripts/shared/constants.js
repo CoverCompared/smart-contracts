@@ -10,29 +10,34 @@ const UNISWAP_ROUTER_ADDRESS = {
   rinkeby: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
 };
 
+const TWAP_ORACLE_PRICE_FEED_FACTORY = {
+  rinkeby: '0x6fa8a7E5c13E4094fD4Fa288ba59544791E4c9d3',
+};
+
 const CVR = {
-  rinkeby: '0x1d505B1B28fbF456619D86760F0BB41b35B3d3f8',
+  rinkeby: '0xd3e48FAcD30A73609ffA60AE84851e72d10fEa52',
 };
 
 const USDC = {
-  rinkeby: '0xC10c1F242fDbDfB6714317ff5bfaB2B477757ed1',
+  rinkeby: '0xD4D5c5D939A173b9c18a6B72eEaffD98ecF8b3F6',
 };
 
 const WETH_USDC = {
-  rinkeby: '0xb7b809b162f12ade432b227d5298ab9c9e9bea6c',
+  rinkeby: '0xe811857ab52a3f1f86273a73517dafe7d4828895',
 };
 
 const WETH_CVR = {
-  rinkeby: '0xaf93ce2f26fda14d8a17c531e22ae841408c0747',
+  rinkeby: '0xab33f0be227aed1c55c274b658f0587544e84e66',
 };
 
 const CVR_USDC = {
-  rinkeby: '0xf65e0c8c7e47659406b0f803ab2d998ae78a3cc6',
+  rinkeby: '0x7a5ddc2479c53e9d1899242f7bd2504524da7511',
 };
 
 module.exports = {
   WETH_ADDRESS,
   UNISWAP_FACTORY_ADDRESS,
+  TWAP_ORACLE_PRICE_FEED_FACTORY,
   CVR,
   USDC,
   WETH_USDC,

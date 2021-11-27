@@ -59,8 +59,8 @@ module.exports = {
       },
       evmVersion: "byzantium",
       forking: {
-        // url: "https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB",
-        url: "https://rinkeby.infura.io/v3/543a595517b74e008ed1cddf79c46cf8",
+        url: "https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB",
+        // url: "https://rinkeby.infura.io/v3/543a595517b74e008ed1cddf79c46cf8",
         enabled: true
       },
       gasPrice: "auto",
@@ -165,7 +165,7 @@ module.exports = {
         enabled: true,
         runs: 500,
       },
-    },
+    }
   },
   mocha: {
     timeout: 3000000,
