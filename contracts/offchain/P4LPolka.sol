@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IExchangeAgent.sol";
 import "../libs/TransferHelper.sol";
 import "./BasePolkaOffChain.sol";
+import "hardhat/console.sol";
 
 contract P4LPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
     event BuyP4L(uint256 indexed _productId, address _buyer, address _currency, uint256 _amount, uint256 _priceInUSD);
@@ -76,7 +77,6 @@ contract P4LPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, _value);
         TransferHelper.safeTransferFrom(_token, _sender, devWallet, tokenAmount);
         uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), uint64(_purchMonth), _device, _brand, _sender);
-
         emit BuyP4L(_pid, _sender, _token, tokenAmount, _value);
     }
 
