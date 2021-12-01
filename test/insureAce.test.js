@@ -3,10 +3,11 @@ const { ethers } = require('hardhat');
 
 const { getAPIEndPoint, getCoverPremium, confirmCoverPremium } = require('../scripts/shared/insureAce');
 const { advanceBlockTo, createPair, createPairETH, getBigNumber } = require('../scripts/shared/utilities');
+const TWAP_PRICE_FACTORY_ABI = require('../scripts/abis/TwapOraclePriceFeedFactory.json');
 
 const UNISWAPV2_ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
 const UNISWAPV2_FACTORY = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
-const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+const WETH = '0xc778417E063141139Fce010982780140Aa0cD5Ab';
 const TWAP_ORACLE_PRICE_FEED_FACTORY = '0x6fa8a7E5c13E4094fD4Fa288ba59544791E4c9d3';
 
 // We are doing test on Ethereum mainnet hardhat
@@ -30,7 +31,7 @@ describe('InsureAcePolka', function () {
     // this.coverDays = [30, 60];  // for mainnet testing
     // this.coverAmounts = ['500000000000000000', '800000000000000000']; // for mainnet testing
 
-    this.productIds = [55]; // for rinkeby testing
+    this.productIds = [57]; // for rinkeby testing
     this.coverDays = [30]; // for rinkeby testing
     this.coverAmounts = ['500000000000000000']; // for rinkeby testing
 
@@ -56,6 +57,12 @@ describe('InsureAcePolka', function () {
     await ethers.provider.send('eth_sendTransaction', [
       { from: this.signers[10].address, to: this.exchangeAgent.address, value: getBigNumber(10).toHexString() },
     ]);
+
+    this.twapOracleFactory = new ethers.Contract(TWAP_ORACLE_PRICE_FEED_FACTORY, TWAP_PRICE_FACTORY_ABI, ethers.provider);
+
+    await (
+      await this.twapOracleFactory.connect(this.signers[0]).newTwapOraclePriceFeed(this.cvr.address, WETH, { from: this.signers[0].address })
+    ).wait();
 
     await this.exchangeAgent.addCurrency(this.cvr.address);
   });
@@ -109,7 +116,7 @@ describe('InsureAcePolka', function () {
     });
     const params = confirmInfo.params;
     console.log('current block', await ethers.provider.getBlockNumber());
-    console.log('target block', parseInt(params[8][0]) + 2);
+    console.log('target block', params[8], parseInt(params[8][0]) + 2);
     await advanceBlockTo(parseInt(params[8][0]) + 2);
     await expect(
       this.insureAcePolka.buyCoverByETH(
@@ -148,8 +155,9 @@ describe('InsureAcePolka', function () {
     //   params: premiumInfo.params,
     // });
     // const params = confirmInfo.params;
-    // await advanceBlockTo(parseInt(params[8][0]) + 2);
     // await this.cvr.approve(this.insureAcePolka.address, getBigNumber(10000000000));
+    // await advanceBlockTo(parseInt(params[8][0]) + 2);
+    // console.log("[insureAcePolka log]", params[2], params[3]);
     // await expect(
     //   this.insureAcePolka.buyCoverByToken(
     //     params[0],
