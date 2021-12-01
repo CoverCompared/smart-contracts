@@ -84,6 +84,7 @@ module.exports = {
     // },
     /** Kovan fork for NexusMutual  */
     // hardhat: {
+    //   hardfork: "london",
     //   allowUnlimitedContractSize: true,
     //   settings: {
     //     optimizer: {
@@ -91,12 +92,14 @@ module.exports = {
     //       runs: 9999,
     //     },
     //   },
+    //   evmVersion: "byzantium",
     //   forking: {
-    //     url: "https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+    //     url: "https://eth-kovan.alchemyapi.io/v2/ATNlxsR5u2TBAJsmFjuJgQuiLrpwKodj",
     //     enabled: true,
     //     // blockNumber: 13138661, // 12302937,
     //   },
-    //   gasPrice: "auto"
+    //   gasPrice: "auto",
+    //   accounts
     // },
     // hardhat: {
     //   gasPrice: "auto",

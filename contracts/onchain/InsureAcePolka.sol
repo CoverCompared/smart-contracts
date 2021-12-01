@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "../interfaces/IExchangeAgent.sol";
 import {IInsureAce} from "../interfaces/IInsureAce.sol";
 import "./BasePolkaOnChain.sol";
-import "hardhat/console.sol";
 
 /**
  * We are supporting only CVR for InsureAce
@@ -53,7 +52,6 @@ contract InsureAcePolka is BasePolkaOnChain {
         if (msg.value - premiumAmount > 0) {
             TransferHelper.safeTransferETH(msg.sender, msg.value - premiumAmount);
         }
-        console.log("[ETH balance 0]", securityParameters[0], block.number);
 
         IInsureAce(coverContractAddress).buyCover{value: premiumAmount}(
             products,
@@ -98,8 +96,6 @@ contract InsureAcePolka is BasePolkaOnChain {
             amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(CVR, currency, premiumAmount + 1);
         }
 
-        console.log("[ETH balance 0]", securityParameters[0], block.number);
-
         TransferHelper.safeTransferFrom(CVR, msg.sender, address(this), amount);
         TransferHelper.safeApprove(CVR, exchangeAgent, amount);
 
@@ -110,10 +106,6 @@ contract InsureAcePolka is BasePolkaOnChain {
             TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
         }
 
-        console.log("[ETH balance]", address(this).balance);
-
-        console.log("[insureAcePolka1]", amount, premiumAmount);
-        console.log("[insureAcePolka2]", amounts[0]);
         IInsureAce(coverContractAddress).buyCover{value: premiumAmount}(
             products,
             durationInDays,

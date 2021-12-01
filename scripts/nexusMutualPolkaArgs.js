@@ -1,0 +1,6 @@
+// kovan
+module.exports = [
+  '0xFc9B2B2565B38511B9822887F99D036d694a11e6',
+  '0xC3aee90478d1C11Af6E721DBfaDbb2028Fe6cf28',
+  '0xe77250450fc9f682edeff9f0d252836189c01b53',
+];
