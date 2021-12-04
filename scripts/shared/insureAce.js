@@ -8,6 +8,7 @@ function getAPIEndPoint(chainId, method) {
       return `https://api.insurace.io/ops/v1/${method}?code=${process.env.INSURE_ACE_MAINNET_KEY}`;
     case 4:
       return `https://insurace-sl-microservice.azurewebsites.net/${method}?code=${process.env.INSURE_ACE_RINKEBY_KEY}`;
+    // return `https://api.insurace.io/ops/v1/${method}?code=${process.env.INSURE_ACE_RINKEBY_KEY}`;
     default:
       return `https://api.insurace.io/ops/v1/${method}?code=${process.env.INSURE_ACE_MAINNET_KEY}`;
   }

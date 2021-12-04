@@ -3,10 +3,12 @@ const { ethers } = require('hardhat');
 
 const { getAPIEndPoint, getCoverPremium, confirmCoverPremium } = require('../scripts/shared/insureAce');
 const { advanceBlockTo, createPair, createPairETH, getBigNumber } = require('../scripts/shared/utilities');
+const TWAP_PRICE_FACTORY_ABI = require('../scripts/abis/TwapOraclePriceFeedFactory.json');
 
 const UNISWAPV2_ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D';
 const UNISWAPV2_FACTORY = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
-const WETH = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+const WETH = '0xc778417E063141139Fce010982780140Aa0cD5Ab';
+const TWAP_ORACLE_PRICE_FEED_FACTORY = '0x6fa8a7E5c13E4094fD4Fa288ba59544791E4c9d3';
 
 // We are doing test on Ethereum mainnet hardhat
 describe('InsureAcePolka', function () {
@@ -29,7 +31,7 @@ describe('InsureAcePolka', function () {
     // this.coverDays = [30, 60];  // for mainnet testing
     // this.coverAmounts = ['500000000000000000', '800000000000000000']; // for mainnet testing
 
-    this.productIds = [55]; // for rinkeby testing
+    this.productIds = [57]; // for rinkeby testing
     this.coverDays = [30]; // for rinkeby testing
     this.coverAmounts = ['500000000000000000']; // for rinkeby testing
 
@@ -40,7 +42,7 @@ describe('InsureAcePolka', function () {
 
     this.mockUSDC = await (await this.MockERC20.deploy('USDC', 'USDC')).deployed();
 
-    this.exchangeAgent = await this.ExchangeAgent.deploy(this.mockUSDC.address, WETH, UNISWAPV2_FACTORY);
+    this.exchangeAgent = await this.ExchangeAgent.deploy(this.mockUSDC.address, WETH, UNISWAPV2_FACTORY, TWAP_ORACLE_PRICE_FEED_FACTORY);
 
     this.cvrETHPair = await createPairETH(
       UNISWAPV2_ROUTER,
@@ -55,6 +57,12 @@ describe('InsureAcePolka', function () {
     await ethers.provider.send('eth_sendTransaction', [
       { from: this.signers[10].address, to: this.exchangeAgent.address, value: getBigNumber(10).toHexString() },
     ]);
+
+    this.twapOracleFactory = new ethers.Contract(TWAP_ORACLE_PRICE_FEED_FACTORY, TWAP_PRICE_FACTORY_ABI, ethers.provider);
+
+    await (
+      await this.twapOracleFactory.connect(this.signers[0]).newTwapOraclePriceFeed(this.cvr.address, WETH, { from: this.signers[0].address })
+    ).wait();
 
     await this.exchangeAgent.addCurrency(this.cvr.address);
   });
@@ -71,27 +79,67 @@ describe('InsureAcePolka', function () {
     await this.exchangeAgent.addWhiteList(this.insureAcePolka.address);
   });
 
-  it('Should get data from InsureAce API', async function () {
-    // console.log('1. Getting premium...');
-    // const premiumInfo = await getCoverPremium(this.chainId, {
-    //   chain: this.chain,
-    //   productIds: this.productIds,
-    //   coverDays: this.coverDays,
-    //   coverAmounts: this.coverAmounts,
-    //   coverCurrency: this.coverCurrency,
-    //   owner: this.coverOwner,
-    //   referralCode: this.referralCode
-    // });
-    // console.log('2. Confirming cover premium');
-    // const confirmInfo = await confirmCoverPremium(this.chainId, {
-    //   chain: this.chain,
-    //   params: premiumInfo.params,
-    // });
-    // console.log(`confirmInfo ${JSON.stringify(confirmInfo)}`);
-  });
+  // it('Should get data from InsureAce API', async function () {
+  //   // console.log('1. Getting premium...');
+  //   // const premiumInfo = await getCoverPremium(this.chainId, {
+  //   //   chain: this.chain,
+  //   //   productIds: this.productIds,
+  //   //   coverDays: this.coverDays,
+  //   //   coverAmounts: this.coverAmounts,
+  //   //   coverCurrency: this.coverCurrency,
+  //   //   owner: this.coverOwner,
+  //   //   referralCode: this.referralCode
+  //   // });
+  //   // console.log('2. Confirming cover premium');
+  //   // const confirmInfo = await confirmCoverPremium(this.chainId, {
+  //   //   chain: this.chain,
+  //   //   params: premiumInfo.params,
+  //   // });
+  //   // console.log(`confirmInfo ${JSON.stringify(confirmInfo)}`);
+  // });
 
-  it('Should buy product By ETH', async function () {
-    console.log('1. Getting premium...');
+  // it('Should buy product By ETH', async function () {
+  //   // console.log('1. Getting premium...');
+  //   // const premiumInfo = await getCoverPremium(this.chainId, {
+  //   //   chain: this.chain,
+  //   //   productIds: this.productIds,
+  //   //   coverDays: this.coverDays,
+  //   //   coverAmounts: this.coverAmounts,
+  //   //   coverCurrency: this.coverCurrency,
+  //   //   owner: this.coverOwner,
+  //   //   referralCode: this.referralCode,
+  //   // });
+  //   // console.log('2. Confirming cover premium');
+  //   // const confirmInfo = await confirmCoverPremium(this.chainId, {
+  //   //   chain: this.chain,
+  //   //   params: premiumInfo.params,
+  //   // });
+  //   // const params = confirmInfo.params;
+  //   // console.log('current block', await ethers.provider.getBlockNumber());
+  //   // console.log('target block', params[8], parseInt(params[8][0]) + 2);
+  //   // await advanceBlockTo(parseInt(params[8][0]) + 2);
+  //   // await expect(
+  //   //   this.insureAcePolka.buyCoverByETH(
+  //   //     params[0],
+  //   //     params[1],
+  //   //     params[2],
+  //   //     params[3],
+  //   //     params[4],
+  //   //     params[5],
+  //   //     params[6],
+  //   //     params[7],
+  //   //     params[8],
+  //   //     params[9],
+  //   //     params[10],
+  //   //     params[11],
+  //   //     { value: premiumInfo.premium }
+  //   //   )
+  //   // )
+  //   //   .to.emit(this.insureAcePolka, 'BuyInsureAce')
+  //   //   .withArgs(this.productIds, this.signers[0].address, this.coverCurrency, premiumInfo.premium);
+  // });
+
+  it('Should buy product by token', async function () {
     const premiumInfo = await getCoverPremium(this.chainId, {
       chain: this.chain,
       productIds: this.productIds,
@@ -107,11 +155,12 @@ describe('InsureAcePolka', function () {
       params: premiumInfo.params,
     });
     const params = confirmInfo.params;
+    await this.cvr.approve(this.insureAcePolka.address, getBigNumber(10000000000));
     console.log('current block', await ethers.provider.getBlockNumber());
-    console.log('target block', parseInt(params[8][0]) + 2);
+    console.log('target block', params[8], parseInt(params[8][0]) + 2);
     await advanceBlockTo(parseInt(params[8][0]) + 2);
     await expect(
-      this.insureAcePolka.buyCoverByETH(
+      this.insureAcePolka.buyCoverByToken(
         params[0],
         params[1],
         params[2],
@@ -123,49 +172,10 @@ describe('InsureAcePolka', function () {
         params[8],
         params[9],
         params[10],
-        params[11],
-        { value: premiumInfo.premium }
+        params[11]
       )
     )
       .to.emit(this.insureAcePolka, 'BuyInsureAce')
       .withArgs(this.productIds, this.signers[0].address, this.coverCurrency, premiumInfo.premium);
-  });
-
-  it('Should buy product by token', async function () {
-    // const premiumInfo = await getCoverPremium(this.chainId, {
-    //   chain: this.chain,
-    //   productIds: this.productIds,
-    //   coverDays: this.coverDays,
-    //   coverAmounts: this.coverAmounts,
-    //   coverCurrency: this.coverCurrency,
-    //   owner: this.coverOwner,
-    //   referralCode: this.referralCode,
-    // });
-    // console.log('2. Confirming cover premium');
-    // const confirmInfo = await confirmCoverPremium(this.chainId, {
-    //   chain: this.chain,
-    //   params: premiumInfo.params,
-    // });
-    // const params = confirmInfo.params;
-    // await advanceBlockTo(parseInt(params[8][0]) + 2);
-    // await this.cvr.approve(this.insureAcePolka.address, getBigNumber(10000000000));
-    // await expect(
-    //   this.insureAcePolka.buyCoverByToken(
-    //     params[0],
-    //     params[1],
-    //     params[2],
-    //     params[3],
-    //     params[4],
-    //     params[5],
-    //     params[6],
-    //     params[7],
-    //     params[8],
-    //     params[9],
-    //     params[10],
-    //     params[11]
-    //   )
-    // )
-    //   .to.emit(this.insureAcePolka, 'BuyInsureAce')
-    //   .withArgs(this.productIds, this.signers[0].address, this.coverCurrency, premiumInfo.premium);
   });
 });

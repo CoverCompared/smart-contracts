@@ -15,11 +15,16 @@ interface IExchangeAgent {
 
     function getTokenAmountForETH(address _token, uint256 _desiredAmount) external returns (uint256);
 
-    function swapTokenWithETH(address _token, uint256 _amount) external;
+    function swapTokenWithETH(
+        address _token,
+        uint256 _amount,
+        uint256 _desiredAmount
+    ) external;
 
     function swapTokenWithToken(
         address _token0,
         address _token1,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _desiredAmount
     ) external;
 }

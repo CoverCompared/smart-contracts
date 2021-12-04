@@ -2,7 +2,15 @@
 // const { expect } = require('chai');
 // const { ethers } = require('hardhat');
 // const { getBigNumber, getHexStrFromStr, getPaddedHexStrFromBN } = require('../scripts/shared/utilities');
-// const { WETH_ADDRESS, UNISWAP_FACTORY_ADDRESS, CVR, USDC, CVR_USDC, WETH_USDC } = require('../scripts/shared/constants');
+// const {
+//   WETH_ADDRESS,
+//   UNISWAP_FACTORY_ADDRESS,
+//   TWAP_ORACLE_PRICE_FEED_FACTORY,
+//   CVR,
+//   USDC,
+//   CVR_USDC,
+//   WETH_USDC,
+// } = require('../scripts/shared/constants');
 
 // // We are doing test MSO on rinkeby
 // describe('MSOPolka', function () {
@@ -23,11 +31,15 @@
 //     this.wethUsdcAddress = WETH_USDC.rinkeby;
 //     this.cvrUsdc = CVR_USDC.rinkeby;
 
+//     this.twapOraclePriceFeedFactoryAddress = TWAP_ORACLE_PRICE_FEED_FACTORY.rinkeby;
+
 //     this.devWallet = this.signers[0];
 //   });
 
 //   beforeEach(async function () {
-//     this.exchangeAgent = await (await this.ExchangeAgent.deploy(this.usdcAddress, this.wethAddress, this.uniswapFactoryAddress)).deployed();
+//     this.exchangeAgent = await (
+//       await this.ExchangeAgent.deploy(this.usdcAddress, this.wethAddress, this.uniswapFactoryAddress, this.twapOraclePriceFeedFactoryAddress)
+//     ).deployed();
 
 //     this.multiSigWallet = await this.MultiSigWallet.deploy([this.signers[0].address, this.signers[1].address, this.signers[2].address], 2);
 

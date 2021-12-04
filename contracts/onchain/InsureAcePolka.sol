@@ -100,9 +100,9 @@ contract InsureAcePolka is BasePolkaOnChain {
         TransferHelper.safeApprove(CVR, exchangeAgent, amount);
 
         if (currency == WETH) {
-            IExchangeAgent(exchangeAgent).swapTokenWithETH(CVR, amount);
+            IExchangeAgent(exchangeAgent).swapTokenWithETH(CVR, amount, premiumAmount);
         } else {
-            IExchangeAgent(exchangeAgent).swapTokenWithToken(CVR, currency, amount);
+            IExchangeAgent(exchangeAgent).swapTokenWithToken(CVR, currency, amount, premiumAmount);
             TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
         }
 

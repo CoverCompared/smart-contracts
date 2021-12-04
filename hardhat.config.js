@@ -59,8 +59,8 @@ module.exports = {
       },
       evmVersion: "byzantium",
       forking: {
-        // url: "https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB",
-        url: "https://rinkeby.infura.io/v3/543a595517b74e008ed1cddf79c46cf8",
+        url: "https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB",
+        // url: "https://rinkeby.infura.io/v3/543a595517b74e008ed1cddf79c46cf8",
         enabled: true
       },
       gasPrice: "auto",
@@ -84,6 +84,7 @@ module.exports = {
     // },
     /** Kovan fork for NexusMutual  */
     // hardhat: {
+    //   hardfork: "london",
     //   allowUnlimitedContractSize: true,
     //   settings: {
     //     optimizer: {
@@ -91,12 +92,14 @@ module.exports = {
     //       runs: 9999,
     //     },
     //   },
+    //   evmVersion: "byzantium",
     //   forking: {
-    //     url: "https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+    //     url: "https://eth-kovan.alchemyapi.io/v2/ATNlxsR5u2TBAJsmFjuJgQuiLrpwKodj",
     //     enabled: true,
     //     // blockNumber: 13138661, // 12302937,
     //   },
-    //   gasPrice: "auto"
+    //   gasPrice: "auto",
+    //   accounts
     // },
     // hardhat: {
     //   gasPrice: "auto",
@@ -145,7 +148,7 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: process.env.BSC_API_KEY, // BSC_API_KEY
+    apiKey: process.env.ETHERSCAN_API_KEY, // BSC_API_KEY
   },
   paths: {
     deploy: "deploy",
@@ -165,7 +168,7 @@ module.exports = {
         enabled: true,
         runs: 500,
       },
-    },
+    }
   },
   mocha: {
     timeout: 3000000,

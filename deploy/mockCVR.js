@@ -4,15 +4,12 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  const signers = ['0x6C641CE6A7216F12d28692f9d8b2BDcdE812eD2b', '0xDEfd29b83702cC5dA21a65Eed1FEC2CEAB768074'];
-  const _numConfirmationsRequired = 2;
-
-  await deploy('MultiSigWallet', {
+  await deploy('MockERC20', {
     from: deployer,
-    args: [signers, _numConfirmationsRequired],
+    args: ['CVRs', 'CVR'],
     log: true,
     deterministicDeployment: false,
   });
 };
 
-module.exports.tags = ['MultiSigWallet', 'PolkaCover'];
+module.exports.tags = ['CVR', 'PolkaCover', 'Mock Token'];

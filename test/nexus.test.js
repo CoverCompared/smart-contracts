@@ -6,11 +6,13 @@
 // const { expect } = require('chai');
 // const { ethers } = require('hardhat');
 // const { advanceBlockTo, createPair, createPairETH, getBigNumber } = require('../scripts/shared/utilities');
+// const TWAP_PRICE_FACTORY_ABI = require('../scripts/abis/TwapOraclePriceFeedFactory.json');
 
 // const DISTRIBUTOR_ADDRESS = '0xe77250450fc9f682edeff9f0d252836189c01b53'; // on Kovan
 // const UNISWAPV2_ROUTER = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'; // on Kovan
 // const UNISWAPV2_FACTORY = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'; // on Kovan
 // const WETH = '0xd0a1e359811322d97991e03f863a0c30c2cf029c';
+// const TWAP_ORACLE_PRICE_FEED_FACTORY = '0x08851c9fAa2b1a96097618aD5C7bd6aF781a5ba7';
 // const COVER_TYPE = 0;
 
 // describe('NexusMutualPolka', function () {
@@ -22,7 +24,7 @@
 
 //     this.cvr = await (await this.MockERC20.deploy('CVR', 'CVR')).deployed();
 //     this.mockUSDC = await (await this.MockERC20.deploy('USDC', 'USDC')).deployed();
-//     this.exchangeAgent = await this.ExchangeAgent.deploy(this.mockUSDC.address, WETH, UNISWAPV2_FACTORY);
+//     this.exchangeAgent = await this.ExchangeAgent.deploy(this.mockUSDC.address, WETH, UNISWAPV2_FACTORY, TWAP_ORACLE_PRICE_FEED_FACTORY);
 
 //     this.cvrETHPair = await createPairETH(
 //       UNISWAPV2_ROUTER,
@@ -52,6 +54,13 @@
 //     await ethers.provider.send('eth_sendTransaction', [
 //       { from: this.signers[10].address, to: this.exchangeAgent.address, value: getBigNumber(10).toHexString() },
 //     ]);
+
+//     this.twapOracleFactory = new ethers.Contract(TWAP_ORACLE_PRICE_FEED_FACTORY, TWAP_PRICE_FACTORY_ABI, ethers.provider);
+
+//     await (
+//       await this.twapOracleFactory.connect(this.signers[0]).newTwapOraclePriceFeed(this.cvr.address, WETH, { from: this.signers[0].address })
+//     ).wait();
+
 //     await this.exchangeAgent.addCurrency(this.cvr.address);
 //   });
 
@@ -67,45 +76,46 @@
 //     await this.exchangeAgent.addWhiteList(this.nexusMutualPolka.address);
 //   });
 
-//   it('Should get data from Nexus API', async function () {
-//     const quote = await fetch(this.quoteURL, { headers: this.headers }).then((r) => r.json());
-//   });
+//   // it('Should get data from Nexus API', async function () {
+//   //   const quote = await fetch(this.quoteURL, { headers: this.headers }).then((r) => r.json());
+//   // });
 
-//   it('Should buy product By ETH', async function () {
-//     const quote = await fetch(this.quoteURL, { headers: this.headers }).then((r) => r.json());
-//     // {
-//     //   currency: 'ETH',
-//     //   period: '111',
-//     //   amount: '1',
-//     //   price: '66026290216319654',
-//     //   priceInNXM: '1726147109619947834',
-//     //   expiresAt: 1641910780,
-//     //   generatedAt: 1636726779229,
-//     //   contract: '0x0000000000000000000000000000000000000005',
-//     //   v: 27,
-//     //   r: '0xd8876b4e4edcf6a8504f94d4ddd373343954a3727713ee09d04e7fea3ffad1b2',
-//     //   s: '0x4048ec8fde7226cdd60c1911c0e1bd0eb8013a50f67b517201c29e2150aa4c7b'
-//     // }
-//     const contractAddress = this.coverData.contractAddress;
-//     const coverAsset = this.coverData.asset;
-//     const sumAssured = getBigNumber(this.coverData.coverAmount);
-//     const coverPeriod = this.coverData.period;
-//     const coverType = COVER_TYPE;
-//     const data = ethers.utils.defaultAbiCoder.encode(
-//       ['uint', 'uint', 'uint', 'uint', 'uint8', 'bytes32', 'bytes32'],
-//       [quote.price, quote.priceInNXM, quote.expiresAt, quote.generatedAt, quote.v, quote.r, quote.s]
-//     );
+//   // it('Should buy product By ETH', async function () {
+//   //   const quote = await fetch(this.quoteURL, { headers: this.headers }).then((r) => r.json());
+//   //   // {
+//   //   //   currency: 'ETH',
+//   //   //   period: '111',
+//   //   //   amount: '1',
+//   //   //   price: '66026290216319654',
+//   //   //   priceInNXM: '1726147109619947834',
+//   //   //   expiresAt: 1641910780,
+//   //   //   generatedAt: 1636726779229,
+//   //   //   contract: '0x0000000000000000000000000000000000000005',
+//   //   //   v: 27,
+//   //   //   r: '0xd8876b4e4edcf6a8504f94d4ddd373343954a3727713ee09d04e7fea3ffad1b2',
+//   //   //   s: '0x4048ec8fde7226cdd60c1911c0e1bd0eb8013a50f67b517201c29e2150aa4c7b'
+//   //   // }
+//   //   const contractAddress = this.coverData.contractAddress;
+//   //   const coverAsset = this.coverData.asset;
+//   //   const sumAssured = getBigNumber(this.coverData.coverAmount);
+//   //   const coverPeriod = this.coverData.period;
+//   //   const coverType = COVER_TYPE;
+//   //   const data = ethers.utils.defaultAbiCoder.encode(
+//   //     ['uint', 'uint', 'uint', 'uint', 'uint8', 'bytes32', 'bytes32'],
+//   //     [quote.price, quote.priceInNXM, quote.expiresAt, quote.generatedAt, quote.v, quote.r, quote.s]
+//   //   );
 
-//     const expectedPrice = await this.nexusMutualPolka.getProductPrice(contractAddress, coverAsset, sumAssured, coverPeriod, coverType, data);
-//     console.log(`expectedPrice ${expectedPrice.toString()}`);
+//   //   const expectedPrice = await this.nexusMutualPolka.getProductPrice(contractAddress, coverAsset, sumAssured, coverPeriod, coverType, data);
+//   //   console.log(`expectedPrice ${expectedPrice.toString()}`);
 
-//     await this.nexusMutualPolka.buyCoverByETH(contractAddress, coverAsset, sumAssured, coverPeriod, coverType, expectedPrice, data, {
-//       value: expectedPrice,
-//     });
-//   });
+//   //   await this.nexusMutualPolka.buyCoverByETH(contractAddress, coverAsset, sumAssured, coverPeriod, coverType, expectedPrice, data, {
+//   //     value: expectedPrice,
+//   //   });
+//   // });
 
 //   it('Should buy product by token', async function () {
 //     const quote = await fetch(this.quoteURL, { headers: this.headers }).then((r) => r.json());
+//     console.log('[quote]', quote);
 
 //     const contractAddress = this.coverData.contractAddress;
 //     const coverAsset = this.coverData.asset;

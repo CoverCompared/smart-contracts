@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./libs/TransferHelper.sol";
 import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
+import "./interfaces/ITwapOraclePriceFeedFactory.sol";
+import "./interfaces/ITwapOraclePriceFeed.sol";
 import "./interfaces/IExchangeAgent.sol";
 
 /**
@@ -17,7 +19,9 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     event RemoveGateway(address _sender, address _gateway);
     event AddAvailableCurrency(address _sender, address _currency);
     event RemoveAvailableCurrency(address _sender, address _currency);
+    event UpdateSlippage(address _sender, uint256 _slippage);
     event WithdrawAsset(address _user, address _to, address _token, uint256 _amount);
+    event UpdateSlippageRate(address _user, uint256 _slippageRate);
 
     mapping(address => bool) public whiteList; // white listed polka gateways
     // available currencies in Polkacover, token => pair
@@ -27,15 +31,21 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     address public immutable USDC_ADDRESS;
     address public immutable WETH;
     address public immutable UNISWAP_FACTORY;
+    address public immutable TWAP_ORACLE_PRICE_FEED_FACTORY;
+
+    uint256 public SLIPPPAGE_RAGE;
 
     constructor(
         address _USDC_ADDRESS,
         address _WETH,
-        address _UNISWAP_FACTORY
+        address _UNISWAP_FACTORY,
+        address _TWAP_ORACLE_PRICE_FEED_FACTORY
     ) {
         USDC_ADDRESS = _USDC_ADDRESS;
         WETH = _WETH;
         UNISWAP_FACTORY = _UNISWAP_FACTORY;
+        TWAP_ORACLE_PRICE_FEED_FACTORY = _TWAP_ORACLE_PRICE_FEED_FACTORY;
+        SLIPPPAGE_RAGE = 100;
     }
 
     receive() external payable {}
@@ -47,6 +57,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
 
     /**
      * @dev Get needed _token0 amount for _desiredAmount of _token1
+     * _desiredAmount should consider decimals based on _token1
      */
     function _getNeededTokenAmount(
         address _token0,
@@ -56,20 +67,14 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         address pair = IUniswapV2Factory(UNISWAP_FACTORY).getPair(_token0, _token1);
         require(pair != address(0), "There's no pair");
 
-        address token0 = IUniswapV2Pair(pair).token0();
-        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pair).getReserves();
+        address twapOraclePriceFeed = ITwapOraclePriceFeedFactory(TWAP_ORACLE_PRICE_FEED_FACTORY).getTwapOraclePriceFeed(
+            _token0,
+            _token1
+        );
 
-        uint256 denominator;
-        uint256 numerator;
-        if (_token0 == token0) {
-            denominator = reserve1;
-            numerator = reserve0 * _desiredAmount;
-        } else {
-            denominator = reserve0;
-            numerator = reserve1 * _desiredAmount;
-        }
+        uint256 neededAmount = ITwapOraclePriceFeed(twapOraclePriceFeed).consult(_token1, _desiredAmount);
 
-        return numerator / denominator;
+        return neededAmount;
     }
 
     /**
@@ -98,55 +103,53 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     /**
      * @param _amount: this one is the value with decimals
      */
-    function swapTokenWithETH(address _token, uint256 _amount) external override onlyWhiteListed(msg.sender) nonReentrant {
+    function swapTokenWithETH(
+        address _token,
+        uint256 _amount,
+        uint256 _desiredAmount
+    ) external override onlyWhiteListed(msg.sender) nonReentrant {
         // store CVR in this exchagne contract
         // send eth to buy gateway based on the uniswap price
         require(availableCurrencies[_token], "Token should be added in available list");
-        _swapTokenWithToken(_token, WETH, _amount);
+        _swapTokenWithToken(_token, WETH, _amount, _desiredAmount);
     }
 
     function swapTokenWithToken(
         address _token0,
         address _token1,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _desiredAmount
     ) external override onlyWhiteListed(msg.sender) nonReentrant {
         require(availableCurrencies[_token0], "Token should be added in available list");
-        _swapTokenWithToken(_token0, _token1, _amount);
+        _swapTokenWithToken(_token0, _token1, _amount, _desiredAmount);
     }
 
     /**
-     * @dev exchange _amount of _token0 with _token1
+     * @dev exchange _amount of _token0 with _token1 by twap oracle price
+     * TODO _amount should consider decimals based on _token0
      */
     function _swapTokenWithToken(
         address _token0,
         address _token1,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _desiredAmount
     ) private {
-        address pair = IUniswapV2Factory(UNISWAP_FACTORY).getPair(_token0, _token1);
-        require(pair != address(0), "There's no pair");
+        address twapOraclePriceFeed = ITwapOraclePriceFeedFactory(TWAP_ORACLE_PRICE_FEED_FACTORY).getTwapOraclePriceFeed(
+            _token0,
+            _token1
+        );
 
-        address token0 = IUniswapV2Pair(pair).token0();
-        (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(pair).getReserves();
-
-        uint256 denominator;
-        uint256 numerator;
-        if (_token0 == token0) {
-            denominator = reserve0;
-            numerator = reserve1 * _amount;
-        } else {
-            denominator = reserve1;
-            numerator = reserve0 * _amount;
-        }
-
-        uint256 value = numerator / denominator;
-        require(value <= address(this).balance, "Insufficient ETH balance");
+        uint256 swapAmount = ITwapOraclePriceFeed(twapOraclePriceFeed).consult(_token0, _amount);
+        require(swapAmount <= address(this).balance, "Insufficient ETH balance");
+        uint256 availableMinAmount = (_desiredAmount * (10000 - SLIPPPAGE_RAGE)) / 10000;
+        require(swapAmount > availableMinAmount, "Overflow min amount");
 
         TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), _amount);
 
         if (_token1 == WETH) {
-            TransferHelper.safeTransferETH(msg.sender, value);
+            TransferHelper.safeTransferETH(msg.sender, _desiredAmount);
         } else {
-            TransferHelper.safeTransfer(_token1, msg.sender, value);
+            TransferHelper.safeTransfer(_token1, msg.sender, _desiredAmount);
         }
     }
 
@@ -172,6 +175,12 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         require(availableCurrencies[_currency], "Not available yet");
         availableCurrencies[_currency] = false;
         emit RemoveAvailableCurrency(msg.sender, _currency);
+    }
+
+    function setSlippageRate(uint256 _slippageRate) external onlyOwner {
+        require(_slippageRate > 0 && _slippageRate < 100, "Overflow range");
+        SLIPPPAGE_RAGE = _slippageRate * 100;
+        emit UpdateSlippageRate(msg.sender, _slippageRate);
     }
 
     function withdrawAsset(
