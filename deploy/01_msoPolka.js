@@ -8,7 +8,7 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
   const { deployer } = await getNamedAccounts();
 
   const _WETH = '0xc778417e063141139fce010982780140aa0cd5ab'; // UniswapV2 Router
-  const _exchangeAgent = '0x5A198C9f43FB5E74b167aCE6aDeD3c7BD4d1eaA8';
+  const _exchangeAgent = '0x9Bb129C697b9E8593f329253AFB8Bc777B8Cc892';
   const _devWallet = '0x6C641CE6A7216F12d28692f9d8b2BDcdE812eD2b';
   const _multiSigWallet = '0xC31F8d97B0B9fcD8A30F9AA906335dCCdba99bD5';
 

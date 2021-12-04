@@ -91,18 +91,18 @@ contract InsureAcePolka is BasePolkaOnChain {
     ) external payable {
         uint256 amount;
         if (currency == WETH) {
-            amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(CVR, premiumAmount + 1);
+            amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(CVR, premiumAmount);
         } else {
-            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(CVR, currency, premiumAmount + 1);
+            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(CVR, currency, premiumAmount);
         }
 
         TransferHelper.safeTransferFrom(CVR, msg.sender, address(this), amount);
         TransferHelper.safeApprove(CVR, exchangeAgent, amount);
 
         if (currency == WETH) {
-            IExchangeAgent(exchangeAgent).swapTokenWithETH(CVR, amount);
+            IExchangeAgent(exchangeAgent).swapTokenWithETH(CVR, amount, premiumAmount);
         } else {
-            IExchangeAgent(exchangeAgent).swapTokenWithToken(CVR, currency, amount);
+            IExchangeAgent(exchangeAgent).swapTokenWithToken(CVR, currency, amount, premiumAmount);
             TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
         }
 

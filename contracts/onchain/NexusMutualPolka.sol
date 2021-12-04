@@ -101,19 +101,19 @@ contract NexusMutualPolka is ERC721Holder, BasePolkaOnChain {
         uint256 value;
 
         if (_assets[2] == INexusMutual(distributor).ETH()) {
-            amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_assets[0], productPrice + 1);
+            amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_assets[0], productPrice);
             value = productPrice;
         } else {
-            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_assets[0], _assets[2], productPrice + 1);
+            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_assets[0], _assets[2], productPrice);
         }
 
         TransferHelper.safeTransferFrom(_assets[0], msg.sender, address(this), amount);
         TransferHelper.safeApprove(_assets[0], exchangeAgent, amount);
 
         if (_assets[2] == INexusMutual(distributor).ETH()) {
-            IExchangeAgent(exchangeAgent).swapTokenWithETH(_assets[0], amount);
+            IExchangeAgent(exchangeAgent).swapTokenWithETH(_assets[0], amount, productPrice);
         } else {
-            IExchangeAgent(exchangeAgent).swapTokenWithToken(_assets[0], _assets[2], amount);
+            IExchangeAgent(exchangeAgent).swapTokenWithToken(_assets[0], _assets[2], amount, productPrice);
             TransferHelper.safeApprove(_assets[2], distributor, productPrice);
         }
 
