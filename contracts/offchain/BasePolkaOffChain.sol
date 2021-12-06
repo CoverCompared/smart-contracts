@@ -26,13 +26,11 @@ contract BasePolkaOffChain is Ownable {
     constructor(
         address _WETH,
         address _exchangeAgent,
-        address _devWallet,
-        address _multiSigWallet
+        address _devWallet
     ) {
         WETH = _WETH;
         exchangeAgent = _exchangeAgent;
         devWallet = _devWallet;
-        transferOwnership(_multiSigWallet);
     }
 
     modifier onlyAvailableToken(address _token) {
