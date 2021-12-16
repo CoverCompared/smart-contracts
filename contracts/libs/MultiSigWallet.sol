@@ -3,9 +3,8 @@
 pragma solidity 0.8.0;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./BasicMetaTransaction.sol";
 
-contract MultiSigWallet is ReentrancyGuard, BasicMetaTransaction {
+contract MultiSigWallet is ReentrancyGuard {
     event Deposit(address indexed sender, uint256 amount, uint256 balance);
     event SubmitTransaction(address indexed signer, uint256 indexed txIndex, address indexed to, uint256 value, bytes data);
     event ConfirmTransaction(address indexed signer, uint256 indexed txIndex);
@@ -30,7 +29,7 @@ contract MultiSigWallet is ReentrancyGuard, BasicMetaTransaction {
     Transaction[] private transactions;
 
     modifier onlySigner() {
-        require(isSigner[msgSender()], "not signer");
+        require(isSigner[msg.sender], "not signer");
         _;
     }
 
@@ -45,7 +44,7 @@ contract MultiSigWallet is ReentrancyGuard, BasicMetaTransaction {
     }
 
     modifier notConfirmed(uint256 _txIndex) {
-        require(!isConfirmed[_txIndex][msgSender()], "tx already confirmed");
+        require(!isConfirmed[_txIndex][msg.sender], "tx already confirmed");
         _;
     }
 
@@ -70,7 +69,7 @@ contract MultiSigWallet is ReentrancyGuard, BasicMetaTransaction {
     }
 
     receive() external payable {
-        emit Deposit(msgSender(), msg.value, address(this).balance);
+        emit Deposit(msg.sender, msg.value, address(this).balance);
     }
 
     /**
@@ -88,7 +87,7 @@ contract MultiSigWallet is ReentrancyGuard, BasicMetaTransaction {
 
         transactions.push(Transaction({to: _to, value: _value, data: _data, executed: false, numConfirmations: 0}));
 
-        emit SubmitTransaction(msgSender(), txIndex, _to, _value, _data);
+        emit SubmitTransaction(msg.sender, txIndex, _to, _value, _data);
     }
 
     function confirmTransaction(uint256 _txIndex, bool _execute)
@@ -99,10 +98,10 @@ contract MultiSigWallet is ReentrancyGuard, BasicMetaTransaction {
         notConfirmed(_txIndex)
     {
         Transaction storage transaction = transactions[_txIndex];
-        isConfirmed[_txIndex][msgSender()] = true;
+        isConfirmed[_txIndex][msg.sender] = true;
         transaction.numConfirmations += 1;
 
-        emit ConfirmTransaction(msgSender(), _txIndex);
+        emit ConfirmTransaction(msg.sender, _txIndex);
 
         if (transaction.numConfirmations >= numConfirmationsRequired && _execute) {
             _executeTransaction(_txIndex);
@@ -127,18 +126,18 @@ contract MultiSigWallet is ReentrancyGuard, BasicMetaTransaction {
         (bool success, ) = transaction.to.call{value: transaction.value}(transaction.data);
         require(success, "tx failed");
 
-        emit ExecuteTransaction(msgSender(), _txIndex);
+        emit ExecuteTransaction(msg.sender, _txIndex);
     }
 
     function revokeConfirmation(uint256 _txIndex) public onlySigner txExists(_txIndex) notExecuted(_txIndex) {
         Transaction storage transaction = transactions[_txIndex];
 
-        require(isConfirmed[_txIndex][msgSender()], "tx not confirmed");
+        require(isConfirmed[_txIndex][msg.sender], "tx not confirmed");
 
         transaction.numConfirmations -= 1;
-        isConfirmed[_txIndex][msgSender()] = false;
+        isConfirmed[_txIndex][msg.sender] = false;
 
-        emit RevokeConfirmation(msgSender(), _txIndex);
+        emit RevokeConfirmation(msg.sender, _txIndex);
     }
 
     function getSigners() public view returns (address[] memory) {
