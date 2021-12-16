@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./libs/TransferHelper.sol";
+import "./libs/BasicMetaTransaction.sol";
 import {IUniswapV2Pair} from "./interfaces/IUniswapV2Pair.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import "./interfaces/ITwapOraclePriceFeedFactory.sol";
@@ -14,7 +15,7 @@ import "./interfaces/IExchangeAgent.sol";
 /**
  * @dev This smart contract is for getting CVR_ETH, CVR_USDT price
  */
-contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
+contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard, BasicMetaTransaction {
     event AddGateway(address _sender, address _gateway);
     event RemoveGateway(address _sender, address _gateway);
     event AddAvailableCurrency(address _sender, address _currency);
@@ -130,7 +131,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         address _token,
         uint256 _amount,
         uint256 _desiredAmount
-    ) external override onlyWhiteListed(msg.sender) nonReentrant {
+    ) external override onlyWhiteListed(msgSender()) nonReentrant {
         // store CVR in this exchagne contract
         // send eth to buy gateway based on the uniswap price
         require(availableCurrencies[_token], "Token should be added in available list");
@@ -142,7 +143,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         address _token1,
         uint256 _amount,
         uint256 _desiredAmount
-    ) external override onlyWhiteListed(msg.sender) nonReentrant {
+    ) external override onlyWhiteListed(msgSender()) nonReentrant {
         require(availableCurrencies[_token0], "Token should be added in available list");
         _swapTokenWithToken(_token0, _token1, _amount, _desiredAmount);
     }
@@ -169,43 +170,43 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         }
         require(swapAmount > availableMinAmount, "Overflow min amount");
 
-        TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), _amount);
+        TransferHelper.safeTransferFrom(_token0, msgSender(), address(this), _amount);
 
         if (_token1 == WETH) {
-            TransferHelper.safeTransferETH(msg.sender, _desiredAmount);
+            TransferHelper.safeTransferETH(msgSender(), _desiredAmount);
         } else {
-            TransferHelper.safeTransfer(_token1, msg.sender, _desiredAmount);
+            TransferHelper.safeTransfer(_token1, msgSender(), _desiredAmount);
         }
     }
 
     function addWhiteList(address _gateway) external onlyOwner {
         require(!whiteList[_gateway], "Already white listed");
         whiteList[_gateway] = true;
-        emit AddGateway(msg.sender, _gateway);
+        emit AddGateway(msgSender(), _gateway);
     }
 
     function removeWhiteList(address _gateway) external onlyOwner {
         require(whiteList[_gateway], "Not white listed");
         whiteList[_gateway] = false;
-        emit RemoveGateway(msg.sender, _gateway);
+        emit RemoveGateway(msgSender(), _gateway);
     }
 
     function addCurrency(address _currency) external onlyOwner {
         require(!availableCurrencies[_currency], "Already available");
         availableCurrencies[_currency] = true;
-        emit AddAvailableCurrency(msg.sender, _currency);
+        emit AddAvailableCurrency(msgSender(), _currency);
     }
 
     function removeCurrency(address _currency) external onlyOwner {
         require(availableCurrencies[_currency], "Not available yet");
         availableCurrencies[_currency] = false;
-        emit RemoveAvailableCurrency(msg.sender, _currency);
+        emit RemoveAvailableCurrency(msgSender(), _currency);
     }
 
     function setSlippageRate(uint256 _slippageRate) external onlyOwner {
         require(_slippageRate > 0 && _slippageRate < 100, "Overflow range");
         SLIPPPAGE_RAGE = _slippageRate * 100;
-        emit UpdateSlippageRate(msg.sender, _slippageRate);
+        emit UpdateSlippageRate(msgSender(), _slippageRate);
     }
 
     function withdrawAsset(

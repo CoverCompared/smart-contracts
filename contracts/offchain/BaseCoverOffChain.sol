@@ -3,8 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../libs/BasicMetaTransaction.sol";
 
-contract BaseCoverOffChain is Ownable {
+contract BasePolkaOffChain is Ownable, BasicMetaTransaction {
     using Counters for Counters.Counter;
 
     event BuyProduct(uint256 indexed _productId, address _buyer);
@@ -41,7 +42,7 @@ contract BaseCoverOffChain is Ownable {
     function setExchangeAgent(address _exchangeAgent) external onlyOwner {
         require(_exchangeAgent != address(0), "ZERO Address");
         exchangeAgent = _exchangeAgent;
-        emit SetExchangeAgent(msg.sender, _exchangeAgent);
+        emit SetExchangeAgent(msgSender(), _exchangeAgent);
     }
 
     function _setProductOwner(uint256 _prodId, address _owner) internal {

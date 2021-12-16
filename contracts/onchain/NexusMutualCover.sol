@@ -66,7 +66,7 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain {
 
         require(msg.value >= productPrice, "Insufficient amount");
         if (msg.value > productPrice) {
-            TransferHelper.safeTransferETH(msg.sender, msg.value - productPrice);
+            TransferHelper.safeTransferETH(msgSender(), msg.value - productPrice);
         }
 
         uint256 productId = INexusMutual(distributor).buyCover{value: productPrice}(
@@ -105,7 +105,7 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain {
             amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_assets[0], _assets[2], productPrice);
         }
 
-        TransferHelper.safeTransferFrom(_assets[0], msg.sender, address(this), amount);
+        TransferHelper.safeTransferFrom(_assets[0], msgSender(), address(this), amount);
         TransferHelper.safeApprove(_assets[0], exchangeAgent, amount);
 
         if (_assets[2] == INexusMutual(distributor).ETH()) {
@@ -130,6 +130,6 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain {
     }
 
     function buyCover(uint256 productId) private {
-        IERC721(distributor).transferFrom(address(this), msg.sender, productId);
+        IERC721(distributor).transferFrom(address(this), msgSender(), productId);
     }
 }

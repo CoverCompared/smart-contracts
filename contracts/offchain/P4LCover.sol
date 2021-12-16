@@ -40,17 +40,17 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         bytes memory sig
     ) external payable nonReentrant {
         bytes32 digest = getSignedMsgHash(_policyId, _value, _durPlan);
-        permit(msg.sender, digest, sig);
+        permit(msgSender(), digest, sig);
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getETHAmountForUSDC(_value);
 
         require(msg.value >= tokenAmount, "Insufficient amount");
         if (msg.value > tokenAmount) {
-            TransferHelper.safeTransferETH(msg.sender, msg.value - tokenAmount);
+            TransferHelper.safeTransferETH(msgSender(), msg.value - tokenAmount);
         }
         TransferHelper.safeTransferETH(devWallet, tokenAmount);
 
-        uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), _policyId, msg.sender);
-        emit BuyP4L(_pid, msg.sender, WETH, tokenAmount, _value);
+        uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), _policyId, msgSender());
+        emit BuyP4L(_pid, msgSender(), WETH, tokenAmount, _value);
     }
 
     /**
@@ -64,12 +64,12 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         bytes memory sig
     ) external nonReentrant onlyAvailableToken(_token) {
         bytes32 digest = getSignedMsgHash(_policyId, _value, _durPlan);
-        permit(msg.sender, digest, sig);
+        permit(msgSender(), digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, _value);
-        TransferHelper.safeTransferFrom(_token, msg.sender, devWallet, tokenAmount);
-        uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), _policyId, msg.sender);
-        emit BuyP4L(_pid, msg.sender, _token, tokenAmount, _value);
+        TransferHelper.safeTransferFrom(_token, msgSender(), devWallet, tokenAmount);
+        uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), _policyId, msgSender());
+        emit BuyP4L(_pid, msgSender(), _token, tokenAmount, _value);
     }
 
     function buyProduct(

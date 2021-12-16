@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../libs/TransferHelper.sol";
+import "../libs/BasicMetaTransaction.sol";
 
-contract BaseCoverOnChain is Ownable {
+contract BasePolkaOnChain is Ownable, BasicMetaTransaction {
     event BuyProduct(uint256 indexed _productId, address _buyer);
     event WithdrawAsset(address _user, address _to, address _token, uint256 _amount);
     event SetExchangeAgent(address _setter, address _exchangeAgent);
@@ -55,6 +56,6 @@ contract BaseCoverOnChain is Ownable {
         uint256 _amount
     ) external onlyOwner {
         TransferHelper.safeTransfer(_token, _to, _amount);
-        WithdrawAsset(msg.sender, _to, _token, _amount);
+        WithdrawAsset(msgSender(), _to, _token, _amount);
     }
 }
