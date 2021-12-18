@@ -7,10 +7,9 @@ import {INexusMutual} from "../interfaces/INexusMutual.sol";
 import {INexusMutualGateway} from "../interfaces/INexusMutualGateway.sol";
 import "../interfaces/IExchangeAgent.sol";
 import "../libs/TransferHelper.sol";
-import "./BasePolkaOnChain.sol";
+import "./BaseCoverOnChain.sol";
 
-contract NexusMutualPolka is ERC721Holder, BasePolkaOnChain {
-    // event BuyNexusMutual(address indexed distributor, uint256 indexed pid, address converAsset, uint price, address _buyToken, uint _tokenAmount);
+contract NexusMutualCover is ERC721Holder, BaseCoverOnChain {
     event BuyNexusMutual(uint256 indexed pid, address _buyToken, uint256 _tokenAmount);
 
     /** TODO if it is immutable?  */
@@ -20,7 +19,7 @@ contract NexusMutualPolka is ERC721Holder, BasePolkaOnChain {
         address _CVR,
         address _exchangeAgent,
         address _distributor
-    ) BasePolkaOnChain(_CVR, _exchangeAgent) {
+    ) BaseCoverOnChain(_CVR, _exchangeAgent) {
         distributor = _distributor;
     }
 

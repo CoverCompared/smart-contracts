@@ -23,8 +23,8 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     event WithdrawAsset(address _user, address _to, address _token, uint256 _amount);
     event UpdateSlippageRate(address _user, uint256 _slippageRate);
 
-    mapping(address => bool) public whiteList; // white listed polka gateways
-    // available currencies in Polkacover, token => pair
+    mapping(address => bool) public whiteList; // white listed CoverCompared gateways
+    // available currencies in CoverCompared, token => pair
     // for now we allow CVR
     mapping(address => bool) public availableCurrencies;
 

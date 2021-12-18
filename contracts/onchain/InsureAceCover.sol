@@ -6,12 +6,12 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "../interfaces/IExchangeAgent.sol";
 import {IInsureAce} from "../interfaces/IInsureAce.sol";
-import "./BasePolkaOnChain.sol";
+import "./BaseCoverOnChain.sol";
 
 /**
  * We are supporting only CVR for InsureAce
  */
-contract InsureAcePolka is BasePolkaOnChain {
+contract InsureAceCover is BaseCoverOnChain {
     event BuyInsureAce(uint16[] productIds, address _buyer, address _currency, uint256 _amount);
 
     address public coverContractAddress;
@@ -22,7 +22,7 @@ contract InsureAcePolka is BasePolkaOnChain {
         address _CVR,
         address _exchangeAgent,
         address _coverContractAddress
-    ) BasePolkaOnChain(_CVR, _exchangeAgent) {
+    ) BaseCoverOnChain(_CVR, _exchangeAgent) {
         require(_coverContractAddress != address(0), "S:1");
         CVR = _CVR;
         coverContractAddress = _coverContractAddress;

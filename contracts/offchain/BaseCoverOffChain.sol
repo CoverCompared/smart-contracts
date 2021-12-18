@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract BasePolkaOffChain is Ownable {
+contract BaseCoverOffChain is Ownable {
     using Counters for Counters.Counter;
 
     event BuyProduct(uint256 indexed _productId, address _buyer);
@@ -89,7 +89,7 @@ contract BasePolkaOffChain is Ownable {
     ) internal pure virtual {
         (bytes32 r, bytes32 s, uint8 v) = splitSignature(sig);
         address recoveredAddress = ecrecover(_digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == _sender, "PolkaCompare: INVALID_SIGNATURE");
+        require(recoveredAddress != address(0) && recoveredAddress == _sender, "CoverCompared: INVALID_SIGNATURE");
     }
 
     function splitSignature(bytes memory sig)

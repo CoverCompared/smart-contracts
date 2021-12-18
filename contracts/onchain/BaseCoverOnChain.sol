@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../libs/TransferHelper.sol";
 
-contract BasePolkaOnChain is Ownable {
+contract BaseCoverOnChain is Ownable {
     event BuyProduct(uint256 indexed _productId, address _buyer);
     event WithdrawAsset(address _user, address _to, address _token, uint256 _amount);
 

@@ -6,10 +6,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IExchangeAgent.sol";
 import "../libs/TransferHelper.sol";
-import "./BasePolkaOffChain.sol";
+import "./BaseCoverOffChain.sol";
 import "hardhat/console.sol";
 
-contract P4LPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
+contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
     event BuyP4L(uint256 indexed _productId, address _buyer, address _currency, uint256 _amount, uint256 _priceInUSD);
 
     using Counters for Counters.Counter;
@@ -29,7 +29,7 @@ contract P4LPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         address _WETH,
         address _exchangeAgent,
         address _devWallet
-    ) BasePolkaOffChain(_WETH, _exchangeAgent, _devWallet) {}
+    ) BaseCoverOffChain(_WETH, _exchangeAgent, _devWallet) {}
 
     /**
      * @dev buyProductETH function:

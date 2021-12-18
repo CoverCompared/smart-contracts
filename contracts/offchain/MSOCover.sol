@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IExchangeAgent.sol";
 import "../libs/TransferHelper.sol";
-import "./BasePolkaOffChain.sol";
+import "./BaseCoverOffChain.sol";
 
-contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
+contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
     using Counters for Counters.Counter;
 
     event BuyMSO(
@@ -34,7 +34,7 @@ contract MSOPolka is Ownable, ReentrancyGuard, BasePolkaOffChain {
         address _WETH,
         address _exchangeAgent,
         address _devWallet
-    ) BasePolkaOffChain(_WETH, _exchangeAgent, _devWallet) {}
+    ) BaseCoverOffChain(_WETH, _exchangeAgent, _devWallet) {}
 
     /**
      * @dev buyProductByETH function:
