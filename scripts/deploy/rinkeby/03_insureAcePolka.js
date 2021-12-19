@@ -9,10 +9,10 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
 
   /** @note Check these addresses every deployment,  */
   const _CVR = '0xd3e48FAcD30A73609ffA60AE84851e72d10fEa52';
-  const _exchangeAgent = '0xed698505e496B0c39Eb42B9696f141C5526DdF24';
+  const _exchangeAgent = '0x5640B69a5e1375a95e610052c5eedfea17675996';
   const _coverContractAddress = '0x0921f628b8463227615D2199D0D3860E4fBcD411';
 
-  await deploy('InsureAcePolka', {
+  await deploy('InsureAceCover', {
     from: deployer,
     args: [_CVR, _exchangeAgent, _coverContractAddress],
     log: true,
@@ -20,4 +20,4 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
   });
 };
 
-module.exports.tags = ['InsureAcePolka', 'PolkaCover'];
+module.exports.tags = ['InsureAceCover', 'CoverCompared'];

@@ -13,15 +13,15 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
 
     event BuyMSO(
         uint256 indexed _productId,
-        address _buyer,
-        address _currency,
         uint256 _amount,
         uint256 _priceInUSD,
-        uint256 _conciergePrice
+        uint256 _conciergePrice,
+        address _buyer,
+        address _currency
     );
 
     struct Product {
-        string productName;
+        string policyId;
         uint256 priceInUSD;
         uint256 period;
         uint256 startTime;
@@ -40,7 +40,7 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
      * @dev buyProductByETH function:
      */
     function buyProductByETH(
-        string memory productName,
+        string memory policyId,
         uint256 priceInUSD,
         uint256 period,
         uint256 conciergePrice,
@@ -48,7 +48,7 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
     ) external payable nonReentrant {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
-        bytes32 digest = getSignedMsgHash(productName, priceInUSD, period, conciergePrice);
+        bytes32 digest = getSignedMsgHash(policyId, priceInUSD, period, conciergePrice);
         permit(msg.sender, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getETHAmountForUSDC(usdPrice);
@@ -58,38 +58,36 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         }
         TransferHelper.safeTransferETH(devWallet, tokenAmount);
 
-        uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, msg.sender);
+        uint256 _pid = buyProduct(policyId, priceInUSD, period, conciergePrice, msg.sender);
 
-        emit BuyMSO(_pid, msg.sender, WETH, tokenAmount, priceInUSD, conciergePrice);
+        emit BuyMSO(_pid, tokenAmount, priceInUSD, conciergePrice, msg.sender, WETH);
     }
 
     /**
      * @dev buyProductByToken function:
-     * TODO check if this should be onlyOwner or not. If it is not onlyOwner, users can call this function directly.
      */
     function buyProductByToken(
-        string memory productName,
+        string calldata policyId,
         uint256 priceInUSD,
         uint256 period,
         address _token,
-        address _sender,
         uint256 conciergePrice,
         bytes memory sig
     ) external nonReentrant onlyAvailableToken(_token) {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
-        bytes32 digest = getSignedMsgHash(productName, priceInUSD, period, conciergePrice);
-        permit(_sender, digest, sig);
+        bytes32 digest = getSignedMsgHash(policyId, priceInUSD, period, conciergePrice);
+        permit(msg.sender, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, usdPrice);
-        TransferHelper.safeTransferFrom(_token, _sender, devWallet, tokenAmount);
+        TransferHelper.safeTransferFrom(_token, msg.sender, devWallet, tokenAmount);
 
-        uint256 _pid = buyProduct(productName, priceInUSD, period, conciergePrice, _sender);
-        emit BuyMSO(_pid, _sender, _token, tokenAmount, priceInUSD, conciergePrice);
+        uint256 _pid = buyProduct(policyId, priceInUSD, period, conciergePrice, msg.sender);
+        emit BuyMSO(_pid, tokenAmount, priceInUSD, conciergePrice, msg.sender, _token);
     }
 
     function buyProduct(
-        string memory productName,
+        string memory _policyId,
         uint256 priceInUSD,
         uint256 period,
         uint256 conciergePrice,
@@ -97,7 +95,7 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
     ) private returns (uint256 _pid) {
         _pid = productIds.current();
         products[_pid] = Product({
-            productName: productName,
+            policyId: _policyId,
             priceInUSD: priceInUSD,
             period: period,
             startTime: block.timestamp,

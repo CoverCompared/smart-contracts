@@ -12,7 +12,6 @@ import "./BaseCoverOnChain.sol";
 contract NexusMutualCover is ERC721Holder, BaseCoverOnChain {
     event BuyNexusMutual(uint256 indexed pid, address _buyToken, uint256 _tokenAmount);
 
-    /** TODO if it is immutable?  */
     address public immutable distributor;
 
     constructor(

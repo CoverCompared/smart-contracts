@@ -15,11 +15,9 @@ contract BaseCoverOffChain is Ownable {
     mapping(address => uint64) private _balanceOf; // owner => balance We can think one user can buy max 2**64 products
     mapping(address => uint64[]) private _productsOf; // owner => productIds[]
 
-    // TODO it should be EnumerableSet
     mapping(address => bool) public availableCurrencies;
 
     address public immutable WETH;
-    // TODO should it be public?
     address public exchangeAgent;
     address public devWallet;
 

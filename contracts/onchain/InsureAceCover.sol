@@ -12,9 +12,10 @@ import "./BaseCoverOnChain.sol";
  * We are supporting only CVR for InsureAce
  */
 contract InsureAceCover is BaseCoverOnChain {
-    event BuyInsureAce(uint16[] productIds, address _buyer, address _currency, uint256 _amount);
+    event BuyInsureAce(uint16[] productIds, address _buyer, address _currency, address _token, uint256 _amount);
 
     address public coverContractAddress;
+    // This is the WETH address of InsureAce smart contract
     address public constant WETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
     address public immutable CVR;
 
@@ -38,7 +39,6 @@ contract InsureAceCover is BaseCoverOnChain {
         uint16[] memory durationInDays,
         uint256[] memory amounts,
         address currency,
-        address owner,
         uint256 referralCode,
         uint256 premiumAmount,
         uint256[] memory helperParameters,
@@ -58,7 +58,7 @@ contract InsureAceCover is BaseCoverOnChain {
             durationInDays,
             amounts,
             currency,
-            owner,
+            msg.sender,
             referralCode,
             premiumAmount,
             helperParameters,
@@ -68,7 +68,7 @@ contract InsureAceCover is BaseCoverOnChain {
             s
         );
 
-        emit BuyInsureAce(products, owner, currency, premiumAmount);
+        emit BuyInsureAce(products, msg.sender, currency, currency, premiumAmount);
     }
 
     /**
@@ -80,7 +80,7 @@ contract InsureAceCover is BaseCoverOnChain {
         uint16[] memory durationInDays,
         uint256[] memory amounts,
         address currency,
-        address owner,
+        address _token,
         uint256 referralCode,
         uint256 premiumAmount,
         uint256[] memory helperParameters,
@@ -91,18 +91,18 @@ contract InsureAceCover is BaseCoverOnChain {
     ) external payable {
         uint256 amount;
         if (currency == WETH) {
-            amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(CVR, premiumAmount);
+            amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_token, premiumAmount);
         } else {
-            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(CVR, currency, premiumAmount);
+            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_token, currency, premiumAmount);
         }
 
-        TransferHelper.safeTransferFrom(CVR, msg.sender, address(this), amount);
-        TransferHelper.safeApprove(CVR, exchangeAgent, amount);
+        TransferHelper.safeTransferFrom(_token, msg.sender, address(this), amount);
+        TransferHelper.safeApprove(_token, exchangeAgent, amount);
 
         if (currency == WETH) {
-            IExchangeAgent(exchangeAgent).swapTokenWithETH(CVR, amount, premiumAmount);
+            IExchangeAgent(exchangeAgent).swapTokenWithETH(_token, amount, premiumAmount);
         } else {
-            IExchangeAgent(exchangeAgent).swapTokenWithToken(CVR, currency, amount, premiumAmount);
+            IExchangeAgent(exchangeAgent).swapTokenWithToken(_token, currency, amount, premiumAmount);
             TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
         }
 
@@ -111,7 +111,7 @@ contract InsureAceCover is BaseCoverOnChain {
             durationInDays,
             amounts,
             currency,
-            owner,
+            msg.sender,
             referralCode,
             premiumAmount,
             helperParameters,
@@ -121,6 +121,6 @@ contract InsureAceCover is BaseCoverOnChain {
             s
         );
 
-        emit BuyInsureAce(products, owner, currency, premiumAmount);
+        emit BuyInsureAce(products, msg.sender, currency, _token, premiumAmount);
     }
 }

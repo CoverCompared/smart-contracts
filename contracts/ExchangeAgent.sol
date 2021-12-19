@@ -24,7 +24,8 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     event UpdateSlippageRate(address _user, uint256 _slippageRate);
 
     mapping(address => bool) public whiteList; // white listed CoverCompared gateways
-    // available currencies in CoverCompared, token => pair
+
+    // available currencies in CoverCompared, token => bool
     // for now we allow CVR
     mapping(address => bool) public availableCurrencies;
 
@@ -34,6 +35,10 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     address public immutable TWAP_ORACLE_PRICE_FEED_FACTORY;
 
     uint256 public SLIPPPAGE_RAGE;
+    /**
+     * when users try to use CVR to buy products, we will discount some percentage(25% at first stage)
+     */
+    uint256 public discountPercentage = 75;
 
     constructor(
         address _USDC_ADDRESS,
@@ -55,6 +60,10 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         _;
     }
 
+    function setDiscountPercentage(uint256 _discountPercentage) external onlyOwner {
+        discountPercentage = _discountPercentage;
+    }
+
     /**
      * @dev Get needed _token0 amount for _desiredAmount of _token1
      * _desiredAmount should consider decimals based on _token1
@@ -72,8 +81,10 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
             _token1
         );
 
-        uint256 neededAmount = ITwapOraclePriceFeed(twapOraclePriceFeed).consult(_token1, _desiredAmount);
+        require(twapOraclePriceFeed != address(0), "There's no twap oracle for this pair");
 
+        uint256 neededAmount = ITwapOraclePriceFeed(twapOraclePriceFeed).consult(_token1, _desiredAmount);
+        neededAmount = (neededAmount * discountPercentage) / 100;
         return neededAmount;
     }
 
@@ -92,10 +103,16 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         return _getNeededTokenAmount(WETH, USDC_ADDRESS, _desiredAmount);
     }
 
+    /**
+     * get needed _token amount for _desiredAmount of USDC
+     */
     function getTokenAmountForUSDC(address _token, uint256 _desiredAmount) external view override returns (uint256) {
         return _getNeededTokenAmount(_token, USDC_ADDRESS, _desiredAmount);
     }
 
+    /**
+     * get needed _token amount for _desiredAmount of ETH
+     */
     function getTokenAmountForETH(address _token, uint256 _desiredAmount) external view override returns (uint256) {
         return _getNeededTokenAmount(_token, WETH, _desiredAmount);
     }
@@ -126,7 +143,6 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
 
     /**
      * @dev exchange _amount of _token0 with _token1 by twap oracle price
-     * TODO _amount should consider decimals based on _token0
      */
     function _swapTokenWithToken(
         address _token0,

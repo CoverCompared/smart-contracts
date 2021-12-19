@@ -14,7 +14,6 @@ contract BaseCoverOnChain is Ownable {
     mapping(address => bool) public availableCurrencies;
 
     // address public immutable WETH;
-    // TODO should it be public?
     address public exchangeAgent;
 
     constructor(address _CVR, address _exchangeAgent) {

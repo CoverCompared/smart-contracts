@@ -131,21 +131,6 @@ module.exports = {
       gasPrice: 20000000000,
       gasMultiplier: 2,
     },
-    bscTest: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
-      chainId: 97,
-      accounts: { mnemonic: process.env.MNEMONIC },
-      live: true,
-      saveDeployments: true,
-      gasMultiplier: 2,
-    },
-    bscMain: {
-      url: "https://bsc-dataseed.binance.org/",
-      chainId: 56,
-      accounts: { mnemonic: process.env.MNEMONIC },
-      live: true,
-      saveDeployments: true,
-    },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY, // BSC_API_KEY

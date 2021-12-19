@@ -18,9 +18,7 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         uint256 startTime;
         uint128 priceInUSD; // price in USD
         uint128 durPlan;
-        uint64 purchMonth;
-        string device;
-        string brand;
+        string policyId;
     }
 
     mapping(uint256 => Product) public products; // productId => product
@@ -36,14 +34,12 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
      * this function should be called from user directly
      */
     function buyProductByETH(
-        string memory _device,
-        string memory _brand,
+        string memory _policyId,
         uint256 _value, // price in USD
-        uint256 _purchMonth,
         uint256 _durPlan,
         bytes memory sig
     ) external payable nonReentrant {
-        bytes32 digest = getSignedMsgHash(_device, _brand, _value, _purchMonth, _durPlan);
+        bytes32 digest = getSignedMsgHash(_policyId, _value, _durPlan);
         permit(msg.sender, digest, sig);
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getETHAmountForUSDC(_value);
 
@@ -53,7 +49,7 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         }
         TransferHelper.safeTransferETH(devWallet, tokenAmount);
 
-        uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), uint64(_purchMonth), _device, _brand, msg.sender);
+        uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), _policyId, msg.sender);
         emit BuyP4L(_pid, msg.sender, WETH, tokenAmount, _value);
     }
 
@@ -61,40 +57,33 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
      * @dev buyProductByToken: Users can buy products using ERC20 tokens such as CVR and without gas fee
      */
     function buyProductByToken(
-        string memory _device,
-        string memory _brand,
+        string memory _policyId,
         uint256 _value,
-        uint256 _purchMonth,
         uint256 _durPlan,
         address _token,
-        address _sender,
         bytes memory sig
     ) external nonReentrant onlyAvailableToken(_token) {
-        bytes32 digest = getSignedMsgHash(_device, _brand, _value, _purchMonth, _durPlan);
-        permit(_sender, digest, sig);
+        bytes32 digest = getSignedMsgHash(_policyId, _value, _durPlan);
+        permit(msg.sender, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, _value);
-        TransferHelper.safeTransferFrom(_token, _sender, devWallet, tokenAmount);
-        uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), uint64(_purchMonth), _device, _brand, _sender);
-        emit BuyP4L(_pid, _sender, _token, tokenAmount, _value);
+        TransferHelper.safeTransferFrom(_token, msg.sender, devWallet, tokenAmount);
+        uint256 _pid = buyProduct(uint128(_value), uint128(_durPlan), _policyId, msg.sender);
+        emit BuyP4L(_pid, msg.sender, _token, tokenAmount, _value);
     }
 
     function buyProduct(
         uint128 _value,
         uint128 _durPlan,
-        uint64 _purchMonth,
-        string memory _device,
-        string memory _brand,
+        string memory _policyId,
         address _sender
     ) private returns (uint256 _pid) {
         _pid = productIds.current();
         products[_pid] = Product({
-            priceInUSD: _value, // price in USD
-            purchMonth: _purchMonth,
-            durPlan: _durPlan,
             startTime: block.timestamp,
-            device: _device,
-            brand: _brand
+            priceInUSD: _value, // price in USD
+            durPlan: _durPlan,
+            policyId: _policyId
         });
         _setProductOwner(_pid, _sender);
         _increaseBalance(_sender);
@@ -103,13 +92,11 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
     }
 
     function getSignedMsgHash(
-        string memory _device,
-        string memory _brand,
+        string memory _policyId,
         uint256 _value,
-        uint256 _purchMonth,
         uint256 _durPlan
     ) internal pure returns (bytes32) {
-        bytes32 msgHash = keccak256(abi.encodePacked(_device, _brand, _value, _purchMonth, _durPlan));
+        bytes32 msgHash = keccak256(abi.encodePacked(_policyId, _value, _durPlan));
         /*
         Signature is produced by signing a keccak256 hash with the following format:
         "\x19Ethereum Signed Message\n" + len(msg) + msg
