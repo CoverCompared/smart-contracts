@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../libs/TransferHelper.sol";
 import "../libs/BasicMetaTransaction.sol";
 
-contract BasePolkaOnChain is Ownable, BasicMetaTransaction {
+contract BaseCoverOnChain is Ownable, BasicMetaTransaction {
     event BuyProduct(uint256 indexed _productId, address _buyer);
     event WithdrawAsset(address _user, address _to, address _token, uint256 _amount);
     event SetExchangeAgent(address _setter, address _exchangeAgent);

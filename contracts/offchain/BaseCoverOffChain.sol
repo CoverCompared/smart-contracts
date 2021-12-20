@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../libs/BasicMetaTransaction.sol";
 
-contract BasePolkaOffChain is Ownable, BasicMetaTransaction {
+contract BaseCoverOffChain is Ownable, BasicMetaTransaction {
     using Counters for Counters.Counter;
 
     event BuyProduct(uint256 indexed _productId, address _buyer);
