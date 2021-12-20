@@ -29,6 +29,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     // for now we allow CVR
     mapping(address => bool) public availableCurrencies;
 
+    address public immutable CVR_ADDRESS;
     address public immutable USDC_ADDRESS;
     address public immutable WETH;
     address public immutable UNISWAP_FACTORY;
@@ -41,11 +42,13 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
     uint256 public discountPercentage = 75;
 
     constructor(
+        address _CVR_ADDRESS,
         address _USDC_ADDRESS,
         address _WETH,
         address _UNISWAP_FACTORY,
         address _TWAP_ORACLE_PRICE_FEED_FACTORY
     ) {
+        CVR_ADDRESS = _CVR_ADDRESS;
         USDC_ADDRESS = _USDC_ADDRESS;
         WETH = _WETH;
         UNISWAP_FACTORY = _UNISWAP_FACTORY;
@@ -84,7 +87,10 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         require(twapOraclePriceFeed != address(0), "There's no twap oracle for this pair");
 
         uint256 neededAmount = ITwapOraclePriceFeed(twapOraclePriceFeed).consult(_token1, _desiredAmount);
-        neededAmount = (neededAmount * discountPercentage) / 100;
+        if (_token0 == CVR_ADDRESS) {
+            neededAmount = (neededAmount * discountPercentage) / 100;     
+        }
+
         return neededAmount;
     }
 

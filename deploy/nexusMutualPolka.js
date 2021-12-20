@@ -7,7 +7,7 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
   const { deployer } = await getNamedAccounts();
 
   const _CVR = '0xFc9B2B2565B38511B9822887F99D036d694a11e6';
-  const _exchangeAgent = '0x00206f67e0047357e380062e56fbc52bd2f023f6';
+  const _exchangeAgent = '0x33C5F22E6db919CCFFe1dDf0999cB5C4C9ae7B79';
   const _distributor = '0xe77250450fc9f682edeff9f0d252836189c01b53';
 
   await deploy('NexusMutualCover', {

@@ -2,6 +2,7 @@
 /**
  * @note These are rinkeby addresses, should be changed whenever switching network
  */
+const CVR = '0xFc9B2B2565B38511B9822887F99D036d694a11e6';
 const USDC = '0x5FED7f0b36374B8Ee25177b3cbE21B6c8E079F4E';
 const WETH = '0xd0a1e359811322d97991e03f863a0c30c2cf029c'; // Uniswap V2 WETH
 const UNISWAPV2_FACTORY = '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f';
@@ -12,10 +13,10 @@ module.exports = async function ({ ethers, getNamedAccounts, deployments, getCha
 
   await deploy('ExchangeAgent', {
     from: deployer,
-    args: [USDC, WETH, UNISWAPV2_FACTORY, TWAP_PRICE_FEED_FACTORY],
+    args: [CVR, USDC, WETH, UNISWAPV2_FACTORY, TWAP_PRICE_FEED_FACTORY],
     log: true,
     deterministicDeployment: false,
   });
 };
 
-module.exports.tags = ['ExchangeAgent', 'PolkaCover'];
+module.exports.tags = ['ExchangeAgent', 'CoverCompared'];

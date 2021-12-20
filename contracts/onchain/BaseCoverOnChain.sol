@@ -8,6 +8,7 @@ import "../libs/TransferHelper.sol";
 contract BaseCoverOnChain is Ownable {
     event BuyProduct(uint256 indexed _productId, address _buyer);
     event WithdrawAsset(address _user, address _to, address _token, uint256 _amount);
+    event SetExchangeAgent(address _setter, address _exchangeAgent);
 
     using Counters for Counters.Counter;
     Counters.Counter public productIds;
@@ -36,6 +37,12 @@ contract BaseCoverOnChain is Ownable {
     function removeCurrency(address _currency) external onlyOwner {
         require(availableCurrencies[_currency], "Not available yet");
         availableCurrencies[_currency] = false;
+    }
+
+    function setExchangeAgent(address _exchangeAgent) external onlyOwner {
+        require(_exchangeAgent != address(0), "ZERO Address");
+        exchangeAgent = _exchangeAgent;
+        emit SetExchangeAgent(msg.sender, _exchangeAgent);
     }
 
     /**
