@@ -164,6 +164,9 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         uint256 swapAmount = ITwapOraclePriceFeed(twapOraclePriceFeed).consult(_token0, _amount);
         require(swapAmount <= address(this).balance, "Insufficient ETH balance");
         uint256 availableMinAmount = (_desiredAmount * (10000 - SLIPPPAGE_RAGE)) / 10000;
+        if (_token0 == CVR_ADDRESS) {
+            availableMinAmount = availableMinAmount * discountPercentage / 100;
+        }
         require(swapAmount > availableMinAmount, "Overflow min amount");
 
         TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), _amount);
