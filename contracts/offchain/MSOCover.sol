@@ -33,8 +33,9 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
     constructor(
         address _WETH,
         address _exchangeAgent,
-        address _devWallet
-    ) BaseCoverOffChain(_WETH, _exchangeAgent, _devWallet) {}
+        address _devWallet,
+        address _signer
+    ) BaseCoverOffChain(_WETH, _exchangeAgent, _devWallet, _signer) {}
 
     /**
      * @dev buyProductByETH function:
@@ -49,7 +50,7 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(policyId, priceInUSD, period, conciergePrice);
-        permit(msgSender(), digest, sig);
+        permit(signer, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getETHAmountForUSDC(usdPrice);
         require(msg.value >= tokenAmount, "Insufficient amount");
@@ -77,7 +78,7 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(policyId, priceInUSD, period, conciergePrice);
-        permit(msgSender(), digest, sig);
+        permit(signer, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, usdPrice);
         TransferHelper.safeTransferFrom(_token, msgSender(), devWallet, tokenAmount);
