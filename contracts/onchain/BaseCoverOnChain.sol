@@ -56,6 +56,6 @@ contract BaseCoverOnChain is Ownable, BasicMetaTransaction {
         uint256 _amount
     ) external onlyOwner {
         TransferHelper.safeTransfer(_token, _to, _amount);
-        WithdrawAsset(msgSender(), _to, _token, _amount);
+        emit WithdrawAsset(msgSender(), _to, _token, _amount);
     }
 }

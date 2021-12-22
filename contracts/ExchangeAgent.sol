@@ -63,7 +63,11 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         _;
     }
 
+    /**
+     * @dev If users use CVR, they will pay _discountPercentage % of cost.
+     */
     function setDiscountPercentage(uint256 _discountPercentage) external onlyOwner {
+        require(_discountPercentage <= 100, "Exceeded value");
         discountPercentage = _discountPercentage;
     }
 
