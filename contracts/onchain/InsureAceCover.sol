@@ -50,7 +50,7 @@ contract InsureAceCover is BaseCoverOnChain {
         require(currency == WETH, "Not ETH product");
         require(msg.value >= premiumAmount, "Insufficient amount");
         if (msg.value - premiumAmount > 0) {
-            TransferHelper.safeTransferETH(msg.sender, msg.value - premiumAmount);
+            TransferHelper.safeTransferETH(msgSender(), msg.value - premiumAmount);
         }
 
         IInsureAce(coverContractAddress).buyCover{value: premiumAmount}(
@@ -58,7 +58,7 @@ contract InsureAceCover is BaseCoverOnChain {
             durationInDays,
             amounts,
             currency,
-            msg.sender,
+            msgSender(),
             referralCode,
             premiumAmount,
             helperParameters,
@@ -68,7 +68,7 @@ contract InsureAceCover is BaseCoverOnChain {
             s
         );
 
-        emit BuyInsureAce(products, msg.sender, currency, currency, premiumAmount);
+        emit BuyInsureAce(products, msgSender(), currency, currency, premiumAmount);
     }
 
     /**
@@ -96,7 +96,7 @@ contract InsureAceCover is BaseCoverOnChain {
             amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_token, currency, premiumAmount);
         }
 
-        TransferHelper.safeTransferFrom(_token, msg.sender, address(this), amount);
+        TransferHelper.safeTransferFrom(_token, msgSender(), address(this), amount);
         TransferHelper.safeApprove(_token, exchangeAgent, amount);
 
         if (currency == WETH) {
@@ -111,7 +111,7 @@ contract InsureAceCover is BaseCoverOnChain {
             durationInDays,
             amounts,
             currency,
-            msg.sender,
+            msgSender(),
             referralCode,
             premiumAmount,
             helperParameters,
@@ -121,6 +121,6 @@ contract InsureAceCover is BaseCoverOnChain {
             s
         );
 
-        emit BuyInsureAce(products, msg.sender, currency, _token, premiumAmount);
+        emit BuyInsureAce(products, msgSender(), currency, _token, premiumAmount);
     }
 }

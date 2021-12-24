@@ -3,12 +3,14 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "../libs/BasicMetaTransaction.sol";
 
-contract BaseCoverOffChain is Ownable {
+contract BaseCoverOffChain is Ownable, BasicMetaTransaction {
     using Counters for Counters.Counter;
 
     event BuyProduct(uint256 indexed _productId, address _buyer);
     event SetExchangeAgent(address _setter, address _exchangeAgent);
+    event SetSigner(address _setter, address _signer);
 
     Counters.Counter public productIds;
     mapping(uint256 => address) private _ownerOf; // productId => owner
@@ -20,15 +22,18 @@ contract BaseCoverOffChain is Ownable {
     address public immutable WETH;
     address public exchangeAgent;
     address public devWallet;
+    address public signer;
 
     constructor(
         address _WETH,
         address _exchangeAgent,
-        address _devWallet
+        address _devWallet,
+        address _signer
     ) {
         WETH = _WETH;
         exchangeAgent = _exchangeAgent;
         devWallet = _devWallet;
+        signer = _signer;
     }
 
     modifier onlyAvailableToken(address _token) {
@@ -41,7 +46,13 @@ contract BaseCoverOffChain is Ownable {
     function setExchangeAgent(address _exchangeAgent) external onlyOwner {
         require(_exchangeAgent != address(0), "ZERO Address");
         exchangeAgent = _exchangeAgent;
-        emit SetExchangeAgent(msg.sender, _exchangeAgent);
+        emit SetExchangeAgent(msgSender(), _exchangeAgent);
+    }
+
+    function setSigner(address _signer) external onlyOwner {
+        require(_signer != address(0), "ZERO Address");
+        signer = _signer;
+        emit SetSigner(msgSender(), _signer);
     }
 
     function _setProductOwner(uint256 _prodId, address _owner) internal {

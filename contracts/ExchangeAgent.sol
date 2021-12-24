@@ -63,7 +63,11 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         _;
     }
 
+    /**
+     * @dev If users use CVR, they will pay _discountPercentage % of cost.
+     */
     function setDiscountPercentage(uint256 _discountPercentage) external onlyOwner {
+        require(_discountPercentage <= 100, "Exceeded value");
         discountPercentage = _discountPercentage;
     }
 
@@ -88,7 +92,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
 
         uint256 neededAmount = ITwapOraclePriceFeed(twapOraclePriceFeed).consult(_token1, _desiredAmount);
         if (_token0 == CVR_ADDRESS) {
-            neededAmount = (neededAmount * discountPercentage) / 100;     
+            neededAmount = (neededAmount * discountPercentage) / 100;
         }
 
         return neededAmount;
@@ -165,7 +169,7 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         require(swapAmount <= address(this).balance, "Insufficient ETH balance");
         uint256 availableMinAmount = (_desiredAmount * (10000 - SLIPPPAGE_RAGE)) / 10000;
         if (_token0 == CVR_ADDRESS) {
-            availableMinAmount = availableMinAmount * discountPercentage / 100;
+            availableMinAmount = (availableMinAmount * discountPercentage) / 100;
         }
         require(swapAmount > availableMinAmount, "Overflow min amount");
 

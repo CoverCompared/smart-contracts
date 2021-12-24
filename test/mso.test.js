@@ -33,14 +33,23 @@ describe('MSOCover', function () {
     this.twapOraclePriceFeedFactoryAddress = TWAP_ORACLE_PRICE_FEED_FACTORY.rinkeby;
 
     this.devWallet = this.signers[0];
+    this.signer = this.signers[1];
   });
 
   beforeEach(async function () {
     this.exchangeAgent = await (
-      await this.ExchangeAgent.deploy(this.usdcAddress, this.wethAddress, this.uniswapFactoryAddress, this.twapOraclePriceFeedFactoryAddress)
+      await this.ExchangeAgent.deploy(
+        this.cvrAddress,
+        this.usdcAddress,
+        this.wethAddress,
+        this.uniswapFactoryAddress,
+        this.twapOraclePriceFeedFactoryAddress
+      )
     ).deployed();
 
-    this.msoCover = await (await this.MSOCover.deploy(this.wethAddress, this.exchangeAgent.address, this.devWallet.address)).deployed();
+    this.msoCover = await (
+      await this.MSOCover.deploy(this.wethAddress, this.exchangeAgent.address, this.devWallet.address, this.signer.address)
+    ).deployed();
     await this.msoCover.addCurrency(this.cvrAddress);
     await this.exchangeAgent.addCurrency(this.cvrAddress);
   });
@@ -58,7 +67,7 @@ describe('MSOCover', function () {
     const paddedConciergePriceHexStr = getPaddedHexStrFromBN(conciergePrice);
 
     hexData = hexPolicyId + paddedPriceUSDHexStr.slice(2) + paddedPeriodHexStr.slice(2) + paddedConciergePriceHexStr.slice(2);
-    const flatSig = await this.devWallet.signMessage(ethers.utils.arrayify(ethers.utils.keccak256(hexData)));
+    const flatSig = await this.signer.signMessage(ethers.utils.arrayify(ethers.utils.keccak256(hexData)));
 
     const expectedAmount = await this.exchangeAgent.getETHAmountForUSDC(priceUSD + conciergePrice);
 
@@ -80,9 +89,11 @@ describe('MSOCover', function () {
     const paddedConciergePriceHexStr = getPaddedHexStrFromBN(conciergePrice);
 
     hexData = hexPolicyId + paddedPriceUSDHexStr.slice(2) + paddedPeriodHexStr.slice(2) + paddedConciergePriceHexStr.slice(2);
-    const flatSig = await this.devWallet.signMessage(ethers.utils.arrayify(ethers.utils.keccak256(hexData)));
+    const flatSig = await this.signer.signMessage(ethers.utils.arrayify(ethers.utils.keccak256(hexData)));
 
     const expectedAmount = await this.exchangeAgent.getTokenAmountForUSDC(this.cvrAddress, priceUSD + conciergePrice);
+
+    await this.cvr.connect(this.signers[0]).faucetToken(getBigNumber(500000));
     await this.cvr.connect(this.signers[0]).approve(this.msoCover.address, getBigNumber(100000000000));
 
     await expect(this.msoCover.buyProductByToken(policyId, priceUSD, productPeriod, this.cvrAddress, conciergePrice, flatSig))

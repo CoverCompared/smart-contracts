@@ -33,8 +33,9 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
     constructor(
         address _WETH,
         address _exchangeAgent,
-        address _devWallet
-    ) BaseCoverOffChain(_WETH, _exchangeAgent, _devWallet) {}
+        address _devWallet,
+        address _signer
+    ) BaseCoverOffChain(_WETH, _exchangeAgent, _devWallet, _signer) {}
 
     /**
      * @dev buyProductByETH function:
@@ -49,18 +50,18 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(policyId, priceInUSD, period, conciergePrice);
-        permit(msg.sender, digest, sig);
+        permit(signer, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getETHAmountForUSDC(usdPrice);
         require(msg.value >= tokenAmount, "Insufficient amount");
         if (msg.value > tokenAmount) {
-            TransferHelper.safeTransferETH(msg.sender, msg.value - tokenAmount);
+            TransferHelper.safeTransferETH(msgSender(), msg.value - tokenAmount);
         }
         TransferHelper.safeTransferETH(devWallet, tokenAmount);
 
-        uint256 _pid = buyProduct(policyId, priceInUSD, period, conciergePrice, msg.sender);
+        uint256 _pid = buyProduct(policyId, priceInUSD, period, conciergePrice, msgSender());
 
-        emit BuyMSO(_pid, tokenAmount, priceInUSD, conciergePrice, msg.sender, WETH);
+        emit BuyMSO(_pid, tokenAmount, priceInUSD, conciergePrice, msgSender(), WETH);
     }
 
     /**
@@ -77,13 +78,13 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(policyId, priceInUSD, period, conciergePrice);
-        permit(msg.sender, digest, sig);
+        permit(signer, digest, sig);
 
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getTokenAmountForUSDC(_token, usdPrice);
-        TransferHelper.safeTransferFrom(_token, msg.sender, devWallet, tokenAmount);
+        TransferHelper.safeTransferFrom(_token, msgSender(), devWallet, tokenAmount);
 
-        uint256 _pid = buyProduct(policyId, priceInUSD, period, conciergePrice, msg.sender);
-        emit BuyMSO(_pid, tokenAmount, priceInUSD, conciergePrice, msg.sender, _token);
+        uint256 _pid = buyProduct(policyId, priceInUSD, period, conciergePrice, msgSender());
+        emit BuyMSO(_pid, tokenAmount, priceInUSD, conciergePrice, msgSender(), _token);
     }
 
     function buyProduct(
