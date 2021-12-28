@@ -1,5 +1,7 @@
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
+const { toBuffer } = require('ethereumjs-util');
+var abi = require('ethereumjs-abi');
 const { getBigNumber, getHexStrFromStr, getPaddedHexStrFromBN } = require('../scripts/shared/utilities');
 const {
   WETH_ADDRESS,
@@ -33,6 +35,7 @@ describe('P4LCover', function () {
 
     this.devWallet = this.signers[0];
     this.signer = this.signers[1];
+    this.biconomyCaller = this.signers[2];
   });
 
   beforeEach(async function () {
@@ -95,6 +98,48 @@ describe('P4LCover', function () {
     await this.cvr.connect(this.signers[0]).approve(this.p4lCover.address, ethers.constants.MaxUint256, { from: this.signers[0].address });
 
     await expect(this.p4lCover.buyProductByToken(policyId, value, durPlan, this.cvrAddress, flatSig))
+      .to.emit(this.p4lCover, 'BuyP4L')
+      .withArgs(0, this.signers[0].address, this.cvrAddress, expectedAmount, value);
+  });
+
+  it('Should buy P4L by available token using meta transaction', async function () {
+    let hexData = '';
+
+    const policyId = 'P4L-000';
+    const value = getBigNumber(50);
+    const durPlan = 6;
+
+    const hexPolicyId = getHexStrFromStr(policyId);
+    const paddedValueHexStr = getPaddedHexStrFromBN(value);
+    const paddedDurPlanHexStr = getPaddedHexStrFromBN(durPlan);
+
+    hexData = hexPolicyId + paddedValueHexStr.slice(2) + paddedDurPlanHexStr.slice(2);
+    const flatSig = await this.signer.signMessage(ethers.utils.arrayify(ethers.utils.keccak256(hexData)));
+
+    const expectedAmount = await this.exchangeAgent.getTokenAmountForUSDC(this.cvrAddress, value);
+
+    await this.cvr.connect(this.signers[0]).faucetToken(getBigNumber(500000));
+    await this.cvr.connect(this.signers[0]).approve(this.p4lCover.address, ethers.constants.MaxUint256, { from: this.signers[0].address });
+
+    const nonce = await this.p4lCover.getNonce(this.signers[0].address);
+    const functionSignature = this.P4LCover.interface.encodeFunctionData('buyProductByToken', [
+      policyId,
+      value,
+      durPlan,
+      this.cvrAddress,
+      flatSig,
+    ]);
+    // const network = await ethers.getDefaultProvider().getNetwork();
+    const messageToSign = await abi.soliditySHA3(
+      ['uint256', 'address', 'uint256', 'bytes'],
+      [nonce.toNumber(), this.p4lCover.address, 31337, toBuffer(functionSignature)]
+    );
+    let signature = await this.signers[0].signMessage(messageToSign);
+    let sig = ethers.utils.splitSignature(signature);
+
+    await expect(
+      this.p4lCover.connect(this.biconomyCaller).executeMetaTransaction(this.signers[0].address, functionSignature, sig.r, sig.s, sig.v)
+    )
       .to.emit(this.p4lCover, 'BuyP4L')
       .withArgs(0, this.signers[0].address, this.cvrAddress, expectedAmount, value);
   });
