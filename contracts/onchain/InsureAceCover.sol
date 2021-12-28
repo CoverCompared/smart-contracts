@@ -70,7 +70,6 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
 
     /**
      * @dev Through this function, users can get covers from Insure by some tokens such as CVR...
-     * if users want to save gas fee, he shoud reach to this function through MultiSigWallet.
      */
     function buyCoverByToken(
         uint16[] memory products,
