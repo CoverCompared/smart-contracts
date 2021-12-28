@@ -3,13 +3,14 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {INexusMutual} from "../interfaces/INexusMutual.sol";
 import {INexusMutualGateway} from "../interfaces/INexusMutualGateway.sol";
 import "../interfaces/IExchangeAgent.sol";
 import "../libs/TransferHelper.sol";
 import "./BaseCoverOnChain.sol";
 
-contract NexusMutualCover is ERC721Holder, BaseCoverOnChain {
+contract NexusMutualCover is ERC721Holder, BaseCoverOnChain, ReentrancyGuard {
     event BuyNexusMutual(uint256 indexed pid, address _buyToken, uint256 _tokenAmount);
 
     address public immutable distributor;
@@ -59,7 +60,7 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain {
         uint8 coverType,
         uint256 maxPriceWithFee,
         bytes calldata data
-    ) external payable {
+    ) external payable nonReentrant whenNotPaused {
         address _weth = INexusMutual(distributor).ETH();
         require(coverAsset == _weth, "Should pay in ETH");
         uint256 productPrice = getProductPrice(contractAddress, coverAsset, sumAssured, coverPeriod, coverType, data);
@@ -91,7 +92,7 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain {
         uint8 coverType,
         uint256 maxPriceWithFee,
         bytes calldata data
-    ) external payable onlyAvailableToken(_assets[0]) {
+    ) external payable onlyAvailableToken(_assets[0]) nonReentrant whenNotPaused {
         require(_assets.length == 3, "Assets param length should be 3");
         uint256 productPrice = getProductPrice(_assets[1], _assets[2], sumAssured, coverPeriod, coverType, data);
 

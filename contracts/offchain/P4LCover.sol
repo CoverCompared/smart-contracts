@@ -39,7 +39,7 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         uint256 _value, // price in USD
         uint256 _durPlan,
         bytes memory sig
-    ) external payable nonReentrant {
+    ) external payable nonReentrant whenNotPaused {
         bytes32 digest = getSignedMsgHash(_policyId, _value, _durPlan);
         permit(signer, digest, sig);
         uint256 tokenAmount = IExchangeAgent(exchangeAgent).getETHAmountForUSDC(_value);
@@ -63,7 +63,7 @@ contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         uint256 _durPlan,
         address _token,
         bytes memory sig
-    ) external nonReentrant onlyAvailableToken(_token) {
+    ) external nonReentrant whenNotPaused onlyAvailableToken(_token) {
         bytes32 digest = getSignedMsgHash(_policyId, _value, _durPlan);
         permit(signer, digest, sig);
 

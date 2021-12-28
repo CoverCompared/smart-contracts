@@ -2,8 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IExchangeAgent.sol";
 import {IInsureAce} from "../interfaces/IInsureAce.sol";
 import "./BaseCoverOnChain.sol";
@@ -11,13 +10,12 @@ import "./BaseCoverOnChain.sol";
 /**
  * We are supporting only CVR for InsureAce
  */
-contract InsureAceCover is BaseCoverOnChain {
+contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
     event BuyInsureAce(uint16[] productIds, address _buyer, address _currency, address _token, uint256 _amount);
 
     address public coverContractAddress;
     // This is the WETH address of InsureAce smart contract
     address public constant WETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-    address public immutable CVR;
 
     constructor(
         address _CVR,
@@ -25,7 +23,6 @@ contract InsureAceCover is BaseCoverOnChain {
         address _coverContractAddress
     ) BaseCoverOnChain(_CVR, _exchangeAgent) {
         require(_coverContractAddress != address(0), "S:1");
-        CVR = _CVR;
         coverContractAddress = _coverContractAddress;
     }
 
@@ -46,7 +43,7 @@ contract InsureAceCover is BaseCoverOnChain {
         uint8[] memory v,
         bytes32[] memory r,
         bytes32[] memory s
-    ) external payable {
+    ) external payable nonReentrant whenNotPaused {
         require(currency == WETH, "Not ETH product");
         require(msg.value >= premiumAmount, "Insufficient amount");
         if (msg.value - premiumAmount > 0) {
@@ -88,7 +85,7 @@ contract InsureAceCover is BaseCoverOnChain {
         uint8[] memory v,
         bytes32[] memory r,
         bytes32[] memory s
-    ) external payable {
+    ) external payable nonReentrant whenNotPaused {
         uint256 amount;
         if (currency == WETH) {
             amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_token, premiumAmount);
