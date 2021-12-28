@@ -46,7 +46,7 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         uint256 period,
         uint256 conciergePrice,
         bytes memory sig
-    ) external payable nonReentrant {
+    ) external payable nonReentrant whenNotPaused {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(policyId, priceInUSD, period, conciergePrice);
@@ -74,7 +74,7 @@ contract MSOCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
         address _token,
         uint256 conciergePrice,
         bytes memory sig
-    ) external nonReentrant onlyAvailableToken(_token) {
+    ) external nonReentrant whenNotPaused onlyAvailableToken(_token) {
         uint256 usdPrice = priceInUSD + conciergePrice;
 
         bytes32 digest = getSignedMsgHash(policyId, priceInUSD, period, conciergePrice);

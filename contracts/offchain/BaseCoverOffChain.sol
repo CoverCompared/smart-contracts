@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "../libs/BasicMetaTransaction.sol";
 
-contract BaseCoverOffChain is Ownable, BasicMetaTransaction {
+contract BaseCoverOffChain is Ownable, Pausable, BasicMetaTransaction {
     using Counters for Counters.Counter;
 
     event BuyProduct(uint256 indexed _productId, address _buyer);
@@ -102,7 +103,7 @@ contract BaseCoverOffChain is Ownable, BasicMetaTransaction {
     }
 
     function splitSignature(bytes memory sig)
-        public
+        private
         pure
         returns (
             bytes32 r,
@@ -122,5 +123,13 @@ contract BaseCoverOffChain is Ownable, BasicMetaTransaction {
         }
 
         // implicitly return (r, s, v)
+    }
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
     }
 }
