@@ -84,7 +84,7 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
         uint8[] memory v,
         bytes32[] memory r,
         bytes32[] memory s
-    ) external payable nonReentrant whenNotPaused {
+    ) external payable nonReentrant whenNotPaused onlyAvailableToken(_token) {
         uint256 amount;
         if (currency == WETH) {
             amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_token, premiumAmount);
