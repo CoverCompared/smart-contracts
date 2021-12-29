@@ -31,6 +31,9 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
 
     address public immutable CVR_ADDRESS;
     address public immutable USDC_ADDRESS;
+    /**
+     * We are using Uniswap V2 TWAP oracle - so it should be WETH addres in Uniswap V2
+     */
     address public immutable WETH;
     address public immutable UNISWAP_FACTORY;
     address public immutable TWAP_ORACLE_PRICE_FEED_FACTORY;
@@ -166,7 +169,6 @@ contract ExchangeAgent is Ownable, IExchangeAgent, ReentrancyGuard {
         );
 
         uint256 swapAmount = ITwapOraclePriceFeed(twapOraclePriceFeed).consult(_token0, _amount);
-        require(swapAmount <= address(this).balance, "Insufficient ETH balance");
         uint256 availableMinAmount = (_desiredAmount * (10000 - SLIPPPAGE_RAGE)) / 10000;
         if (_token0 == CVR_ADDRESS) {
             availableMinAmount = (availableMinAmount * discountPercentage) / 100;
