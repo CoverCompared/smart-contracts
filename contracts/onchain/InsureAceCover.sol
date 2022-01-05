@@ -31,7 +31,7 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
         coverContractAddress = _coverContractAddress;
     }
 
-    function buyCoverByETH(
+    function buyETHCoverByETH(
         uint16[] memory products,
         uint16[] memory durationInDays,
         uint256[] memory amounts,
@@ -44,7 +44,7 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
         bytes32[] memory r,
         bytes32[] memory s
     ) external payable nonReentrant whenNotPaused {
-        require(currency == WETH, "Not ETH product");
+        require(currency == WETH, "Should be ETH product");
         require(msg.value >= premiumAmount, "Insufficient amount");
         if (msg.value - premiumAmount > 0) {
             TransferHelper.safeTransferETH(msgSender(), msg.value - premiumAmount);
@@ -71,7 +71,7 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
     /**
      * @dev Through this function, users can get covers from Insure by some tokens such as CVR...
      */
-    function buyCoverByToken(
+    function buyETHCoverByToken(
         uint16[] memory products,
         uint16[] memory durationInDays,
         uint256[] memory amounts,
@@ -85,24 +85,59 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
         bytes32[] memory r,
         bytes32[] memory s
     ) external payable nonReentrant whenNotPaused {
-        uint256 amount;
-        if (currency == WETH) {
-            amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_token, premiumAmount);
-        } else {
-            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_token, currency, premiumAmount);
-        }
+        require(currency == WETH, "Should be ETH product");
+        uint256 amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_token, premiumAmount);
 
         TransferHelper.safeTransferFrom(_token, msgSender(), address(this), amount);
-        TransferHelper.safeApprove(_token, exchangeAgent, amount);
+        // TransferHelper.safeApprove(_token, exchangeAgent, amount);
 
-        if (currency == WETH) {
-            IExchangeAgent(exchangeAgent).swapTokenWithETH(_token, amount, premiumAmount);
-        } else {
-            IExchangeAgent(exchangeAgent).swapTokenWithToken(_token, currency, amount, premiumAmount);
-            TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
-        }
+        IExchangeAgent(exchangeAgent).swapTokenWithETH(_token, amount, premiumAmount);
 
         IInsureAce(coverContractAddress).buyCover{value: premiumAmount}(
+            products,
+            durationInDays,
+            amounts,
+            currency,
+            msgSender(),
+            referralCode,
+            premiumAmount,
+            helperParameters,
+            securityParameters,
+            v,
+            r,
+            s
+        );
+
+        emit BuyInsureAce(products, msgSender(), currency, _token, premiumAmount);
+    }
+
+    /**
+     * @dev Through this function, users can get covers from Insure by some tokens such as CVR...
+     */
+    function buyTokenCoverByToken(
+        uint16[] memory products,
+        uint16[] memory durationInDays,
+        uint256[] memory amounts,
+        address currency,
+        address _token,
+        uint256 referralCode,
+        uint256 premiumAmount,
+        uint256[] memory helperParameters,
+        uint256[] memory securityParameters,
+        uint8[] memory v,
+        bytes32[] memory r,
+        bytes32[] memory s
+    ) external payable nonReentrant whenNotPaused {
+        require(currency != WETH, "Should be ERC20 token product");
+        uint256 amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_token, currency, premiumAmount);
+
+        TransferHelper.safeTransferFrom(_token, msgSender(), address(this), amount);
+        // TransferHelper.safeApprove(_token, exchangeAgent, amount);
+
+        IExchangeAgent(exchangeAgent).swapTokenWithToken(_token, currency, amount, premiumAmount);
+        TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
+
+        IInsureAce(coverContractAddress).buyCover(
             products,
             durationInDays,
             amounts,

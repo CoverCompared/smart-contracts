@@ -67,4 +67,15 @@ contract BaseCoverOnChain is Ownable, Pausable, BasicMetaTransaction {
     function unpause() external onlyOwner {
         _unpause();
     }
+
+    /**
+     * We would allow ExchangeAgent to consume _token in advance to save gas fee
+     */
+    function setAllowanceExchangeAgent(address _token) external onlyOwner {
+        TransferHelper.safeApprove(_token, exchangeAgent, type(uint256).max);
+    }
+
+    function revokeAllowExchangeAgent(address _token) external onlyOwner {
+        TransferHelper.safeApprove(_token, exchangeAgent, 0);
+    }
 }

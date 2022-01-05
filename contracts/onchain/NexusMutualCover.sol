@@ -11,7 +11,7 @@ import "../libs/TransferHelper.sol";
 import "./BaseCoverOnChain.sol";
 
 contract NexusMutualCover is ERC721Holder, BaseCoverOnChain, ReentrancyGuard {
-    event BuyNexusMutual(uint256 indexed pid, address _buyToken, uint256 _tokenAmount);
+    event BuyNexusMutual(uint256 indexed pid, address _buyToken, uint256 _tokenAmount, uint16 _coverPeriod);
 
     address public immutable distributor;
 
@@ -82,7 +82,7 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain, ReentrancyGuard {
 
         buyCover(productId);
 
-        emit BuyNexusMutual(productId, coverAsset, productPrice);
+        emit BuyNexusMutual(productId, coverAsset, productPrice, coverPeriod);
     }
 
     function buyCoverByToken(
@@ -107,7 +107,7 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain, ReentrancyGuard {
         }
 
         TransferHelper.safeTransferFrom(_assets[0], msgSender(), address(this), amount);
-        TransferHelper.safeApprove(_assets[0], exchangeAgent, amount);
+        // TransferHelper.safeApprove(_assets[0], exchangeAgent, amount);
 
         if (_assets[2] == INexusMutual(distributor).ETH()) {
             IExchangeAgent(exchangeAgent).swapTokenWithETH(_assets[0], amount, productPrice);
@@ -127,7 +127,7 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain, ReentrancyGuard {
         );
 
         buyCover(productId);
-        emit BuyNexusMutual(productId, _assets[0], amount);
+        emit BuyNexusMutual(productId, _assets[0], amount, coverPeriod);
     }
 
     function buyCover(uint256 productId) private {
