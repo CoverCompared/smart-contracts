@@ -84,7 +84,7 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
         uint8[] memory v,
         bytes32[] memory r,
         bytes32[] memory s
-    ) external payable nonReentrant whenNotPaused {
+    ) external nonReentrant whenNotPaused {
         require(currency == WETH, "Should be ETH product");
         uint256 amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_token, premiumAmount);
 
@@ -127,7 +127,7 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
         uint8[] memory v,
         bytes32[] memory r,
         bytes32[] memory s
-    ) external payable nonReentrant whenNotPaused {
+    ) external nonReentrant whenNotPaused {
         require(currency != WETH, "Should be ERC20 token product");
         uint256 amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_token, currency, premiumAmount);
 

@@ -42,8 +42,6 @@ contract BaseCoverOffChain is Ownable, Pausable, BasicMetaTransaction {
         _;
     }
 
-    receive() external payable {}
-
     function setExchangeAgent(address _exchangeAgent) external onlyOwner {
         require(_exchangeAgent != address(0), "ZERO Address");
         exchangeAgent = _exchangeAgent;
