@@ -9,3 +9,6 @@ artifacts
 
 # vscode files
 .vscode
+
+#
+contracts/.deps

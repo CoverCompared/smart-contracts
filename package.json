@@ -16,12 +16,6 @@
     "kovan:deploy": "hardhat --network kovan deploy",
     "kovan:export": "hardhat --network kovan export --export exports/kovan.json",
     "kovan:verify": "hardhat --network kovan etherscan-verify --solc-input",
-    "bscTest:deploy": "hardhat --network bscTest deploy",
-    "bscTest:verify": "hardhat --network bscTest etherscan-verify --solc-input",
-    "bscTest:createPools": "npx hardhat run scripts/createPools_testnet.js --network bscTest",
-    "bscMain:deploy": "hardhat --network bscMain deploy",
-    "bscMain:verify": "hardhat --network bscMain etherscan-verify --solc-input",
-    "bscMain:createPools": "npx hardhat run scripts/createPools_mainnet.js --network bscMain",
     "hardhat:deploy": "hardhat --network hardhat deploy",
     "prettier": "prettier --write test/**/*.js && prettier --write scripts/**/*.js && prettier --write contracts/**/*.sol"
   },
