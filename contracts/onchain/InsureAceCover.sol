@@ -129,12 +129,15 @@ contract InsureAceCover is BaseCoverOnChain, ReentrancyGuard {
         bytes32[] memory s
     ) external nonReentrant whenNotPaused {
         require(currency != WETH, "Should be ERC20 token product");
-        uint256 amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_token, currency, premiumAmount);
+        uint256 amount = currency == _token
+            ? premiumAmount
+            : IExchangeAgent(exchangeAgent).getNeededTokenAmount(_token, currency, premiumAmount);
 
         TransferHelper.safeTransferFrom(_token, msgSender(), address(this), amount);
         // TransferHelper.safeApprove(_token, exchangeAgent, amount);
-
-        IExchangeAgent(exchangeAgent).swapTokenWithToken(_token, currency, amount, premiumAmount);
+        if (currency != _token) {
+            IExchangeAgent(exchangeAgent).swapTokenWithToken(_token, currency, amount, premiumAmount);
+        }
         TransferHelper.safeApprove(currency, coverContractAddress, premiumAmount);
 
         IInsureAce(coverContractAddress).buyCover(

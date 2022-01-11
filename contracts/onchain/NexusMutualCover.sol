@@ -103,12 +103,15 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain, ReentrancyGuard {
             amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_assets[0], productPrice);
             value = productPrice;
         } else {
-            amount = IExchangeAgent(exchangeAgent).getNeededTokenAmount(_assets[0], _assets[2], productPrice);
+            amount = _assets[2] == _assets[1]
+                ? productPrice
+                : IExchangeAgent(exchangeAgent).getNeededTokenAmount(_assets[0], _assets[2], productPrice);
         }
 
-        TransferHelper.safeTransferFrom(_assets[0], msgSender(), address(this), amount);
+        if (_assets[2] != _assets[1]) {
+            TransferHelper.safeTransferFrom(_assets[0], msgSender(), address(this), amount);
+        }
         // TransferHelper.safeApprove(_assets[0], exchangeAgent, amount);
-
         if (_assets[2] == INexusMutual(distributor).ETH()) {
             IExchangeAgent(exchangeAgent).swapTokenWithETH(_assets[0], amount, productPrice);
         } else {
