@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IExchangeAgent.sol";
 import "../libs/TransferHelper.sol";
 import "./BaseCoverOffChain.sol";
-import "hardhat/console.sol";
 
 contract P4LCover is Ownable, ReentrancyGuard, BaseCoverOffChain {
     event BuyP4L(uint256 indexed _productId, address _buyer, address _currency, uint256 _amount, uint256 _priceInUSD);

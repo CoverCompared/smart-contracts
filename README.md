@@ -25,7 +25,7 @@
   - P4LPolka: 0x51956B95f63894Ef378BFEb6e9AaEe837393e266
 
 ### OnChain Polkas
-  - InsureAcePolka: 0xA583E4fF443716496f4bc23AD7CcC0490994AE20
+  - InsureAcePolka: 0x2Bf563Fff6e951724136d069D6D5e885742942B6
 
 
 # Kovan Deployment
@@ -54,7 +54,7 @@
 ### OffChain partners
 
 ### OnChain partners
-  - NexusMutualPolka: 0x4CA8F9D71c5A513b804d67aAA4CC5da2B89aa537
+  - NexusMutualPolka: 0x600cd52172f78d3Cc3593972d8Cf3BD4BBAcC4bB
 
 ## TODO list
 ### Nexus Mutual
