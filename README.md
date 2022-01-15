@@ -19,6 +19,8 @@
   - CVR/WETH(uniswap V2) TWAP oracle price feed: 0xe74ef80E94db7B8bfC47Fb9390D780aAb362DEcB
   - WETH/USDC TWAP oracle price feed: 0xc86718f161412Ace9c0dC6F81B26EfD4D3A8F5e0
 
+  - DAI: 0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa  
+
 ## Polkas
 ### OffChain polkas
   - MSOPolka: 0x49d7Ed485b90aDc96e8e24240e96bc0c7bf5BD13
@@ -59,3 +61,26 @@
 ## TODO list
 ### Nexus Mutual
   - coverAsset parameter: Can we set available cover assets if we create distributor?
+
+
+## Ethereum mainnet
+### Prerquisites
+- CVR: 0x3c03b4ec9477809072ff9cc9292c9b25d4a8e6c6
+- USDC: 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
+- WETH: 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 
+- UNISWAP_FACTORY: 0x5c69bee701ef814a2b6a3edd4b1652cb9cc5aa6f
+- TWAP_ORACLE_PRICE_FEED_FACTORY: 0xd4354a2e9a5b29c0db8c22f500d8bbacaa257deb
+- ExchangeAgent: 0x5365fd7770c795e82869c57b5b254ccaae91d07a
+
+### Off chain partners
+- P4L: 0x674b88c77b9fa787fe30b5cae9d7654f0cdda1aa
+- MSO: 0x80e15e4592b2130131067f02407a74f7ef50d3b5
+
+### On chain covers
+- InsureAceCover: 0x3fc3c73001967fa8202ce119fbf484f4623f884b
+- NexusMutualCover: 0x61002ee838244684c71cfc912f4404fa088cb596
+
+### InsureAce covercontract address
+0x88Ef6F235a4790292068646e79Ee563339c796a0
+### Nexus Distributor
+0xef45cb6d804551ee965766edcfa82a5d33f689f8
