@@ -103,20 +103,16 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain, ReentrancyGuard {
             amount = IExchangeAgent(exchangeAgent).getTokenAmountForETH(_assets[0], productPrice);
             value = productPrice;
         } else {
-            amount = _assets[2] == _assets[1]
+            amount = _assets[2] == _assets[0]
                 ? productPrice
                 : IExchangeAgent(exchangeAgent).getNeededTokenAmount(_assets[0], _assets[2], productPrice);
         }
 
-        if (_assets[2] != _assets[1]) {
-            TransferHelper.safeTransferFrom(_assets[0], msgSender(), address(this), amount);
-        }
-        // TransferHelper.safeApprove(_assets[0], exchangeAgent, amount);
+        TransferHelper.safeTransferFrom(_assets[0], msgSender(), address(this), amount);
         if (_assets[2] == INexusMutual(distributor).ETH()) {
             IExchangeAgent(exchangeAgent).swapTokenWithETH(_assets[0], amount, productPrice);
-        } else {
+        } else if (_assets[2] != _assets[0]) {
             IExchangeAgent(exchangeAgent).swapTokenWithToken(_assets[0], _assets[2], amount, productPrice);
-            TransferHelper.safeApprove(_assets[2], distributor, productPrice);
         }
 
         uint256 productId = INexusMutual(distributor).buyCover{value: value}(
@@ -135,5 +131,16 @@ contract NexusMutualCover is ERC721Holder, BaseCoverOnChain, ReentrancyGuard {
 
     function buyCover(uint256 productId) private {
         IERC721(distributor).transferFrom(address(this), msgSender(), productId);
+    }
+
+    /**
+     * We would allow Distributor to consume _token in advance to save gas fee
+     */
+    function setAllowanceDistributor(address _token) external onlyOwner {
+        TransferHelper.safeApprove(_token, distributor, type(uint256).max);
+    }
+
+    function revokeAllowanceDistributor(address _token) external onlyOwner {
+        TransferHelper.safeApprove(_token, distributor, 0);
     }
 }
